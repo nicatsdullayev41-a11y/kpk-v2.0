@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ru">  
+<head>  
+<meta charset="UTF-8">  
+<title>KPK LOCK SYSTEM</title>  
+<style>  
+body {  
+    margin: 0;  
+    font-family: monospace;  
+    background: black;  
+    color: lime;  
+    user-select: none;  
+}  
+
+/* 🔒 LOCK SCREEN */  
+#lockScreen{  
+    position: fixed;  
+    top:0;  
+    left:0;  
+    width:100%;  
+    height:100%;  
+    background:black;  
+    color:lime;  
+    display:flex;  
+    flex-direction:column;  
+    justify-content:center;  
+    align-items:center;  
+    z-index:9999;  
+}  
+
+#lockTime{  
+    font-size:50px;  
+}  
+
+#lockDate{  
+    font-size:18px;  
+    margin-bottom:20px;  
+}  
+
+/* TOPBAR */  
+#topbar {  
+    background: #111;  
+    padding: 10px;  
+    display: flex;  
+    justify-content: space-between;  
+    align-items: center;  
+    border-bottom: 2px solid lime;  
+}  
+
+#battery {  
+    font-size: 18px;  
+    min-width: 80px;  
+    text-align: right;  
+}  
+
+/* APPS */  
+#apps {  
+    display: flex;  
+    flex-wrap: wrap;  
+    gap: 10px;  
+    padding: 10px;  
+}  
+
+.app {  
+    width: 100px;  
+    height: 100px;  
+    border: 2px solid lime;  
+    display: flex;  
+    align-items: center;  
+    justify-content: center;  
+    cursor: pointer;  
+    user-select: none;  
+}  
+
+.app:hover {  
+    background: #111;  
+}  
+
+/* WINDOWS */  
+.window {  
+    position: absolute;  
+    top: 60px;  
+    left: 60px;  
+    width: 360px;  
+    height: 380px;  
+    border: 2px solid lime;  
+    background: black;  
+    display: none;  
+    flex-direction: column;  
+}  
+
+.window header {  
+    background: #111;  
+    padding: 5px;  
+    display: flex;  
+    justify-content: space-between;  
+    align-items: center;  
+}  
+
+.content {  
+    flex: 1;  
+    padding: 10px;  
+    overflow: auto;  
+}  
+
+button {  
+    background: black;  
+    color: lime;  
+    border: 1px solid lime;  
+    padding: 5px 10px;  
+    cursor: pointer;  
+    font-family: monospace;  
+}  
+
+button:hover {  
+    background: #111;  
+}  
+
+input, textarea {  
+    background: black !important;  
+    color: lime !important;  
+    border: 1px solid lime;  
+    font-family: monospace;  
+}  
+
+/* SHUTDOWN SCREEN */  
+#shutdown{  
+    position: fixed;  
+    top:0;  
+    left:0;  
+    width:100%;  
+    height:100%;  
+    background:black;  
+    color:red;  
+    display:none;  
+    flex-direction:column;  
+    justify-content:center;  
+    align-items:center;  
+    z-index:10000;  
+    font-size: 24px;  
+}  
+</style>  
+</head>  
+<body>  
+
+<!-- 🔋 SHUTDOWN SCREEN -->  
+<div id="shutdown">  
+    <div>🔋 Батарея разряжена</div>  
+    <div style="font-size:48px; margin:20px;">0%</div>  
+    <div>Телефон выключен</div>  
+
+    <!-- 🔄 ВОТ КНОПКА -->
+    <button onclick="reboot()" style="margin-top:20px; font-size:18px;">
+        🔄 Перезагрузка
+    </button>
+
+    <div style="font-size:12px; margin-top:20px;">F5 тоже работает</div>  
+</div>
+
+<!-- 🔒 LOCK SCREEN -->  
+<div id="lockScreen">  
+    <div id="lockTime"></div>  
+    <div id="lockDate"></div>  
+    <button onclick="unlock()">🔓 Unlock</button>  
+</div>  
+
+<!-- TOP BAR -->  
+<div id="topbar">  
+    <div>KPK SYSTEM v2.0</div>  
+    <div>  
+        <span id="clock"></span>  
+        <span id="battery">🔋 100%</span>  
+    </div>  
+</div>  
+
+<!-- APPS -->  
+<div id="apps">  
+    <div class="app" onclick="openApp('notes')">📝 Notes</div>  
+    <div class="app" onclick="openApp('calc')">🧮 Calc</div>  
+    <div class="app" onclick="openApp('game')">🎮 Game</div>  
+    <div class="app" onclick="openApp('net')">🌐 Net</div>  
+    <div class="app" onclick="openApp('hack')">💻 Terminal</div>  
+    <div class="app" onclick="openApp('battery')">🔋 Battery</div>  
+</div>  
+
+<!-- BATTERY APP -->  
+<div id="battery" class="window">  
+<header>Battery <button onclick="closeApp('battery')">X</button></header>  
+<div class="content">  
+    <div id="batLevelBig" style="font-size:48px; text-align:center; margin:20px 0;"></div>  
+    <div style="text-align:center; font-size:14px;">Уровень заряда</div>  
+    <br>  
+    <button onclick="charge()">🔌 Зарядить (+20%)</button>  
+    <button onclick="discharge()">📱 Разрядить (-10%)</button>  
+    <br><br>  
+    <div style="font-size:12px;">Авторазряд: <span id="autoDischargeStatus">OFF</span></div>  
+    <button onclick="toggleAuto()" style="width:100%; margin-top:5px;">🔄 Вкл/Выкл авторазряд (1% / 50 сек)</button>  
+</div>  
+</div>  
+
+<!-- NOTES -->  
+<div id="notes" class="window">  
+<header>Notes <button onclick="closeApp('notes')">X</button></header>  
+<div class="content">  
+<textarea style="width:100%;height:100%;background:black;color:lime;border:1px solid lime;" placeholder="Твои заметки..."></textarea>  
+</div>  
+</div>  
+
+<!-- CALC -->  
+<div id="calc" class="window">  
+<header>Calculator <button onclick="closeApp('calc')">X</button></header>  
+<div class="content">  
+<input id="calcInput" style="width:100%; margin-bottom:10px;" placeholder="2+2*3">  
+<div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px;">  
+<button onclick="document.getElementById('calcInput').value+='1'">1</button>  
+<button onclick="document.getElementById('calcInput').value+='2'">2</button>  
+<button onclick="document.getElementById('calcInput').value+='3'">3</button>  
+<button onclick="document.getElementById('calcInput').value+='+'">+</button>  
+<button onclick="document.getElementById('calcInput').value+='4'">4</button>  
+<button onclick="document.getElementById('calcInput').value+='5'">5</button>  
+<button onclick="document.getElementById('calcInput').value+='6'">6</button>  
+<button onclick="document.getElementById('calcInput').value+='-'">-</button>  
+<button onclick="document.getElementById('calcInput').value+='7'">7</button>  
+<button onclick="document.getElementById('calcInput').value+='8'">8</button>  
+<button onclick="document.getElementById('calcInput').value+='9'">9</button>  
+<button onclick="document.getElementById('calcInput').value+='*'">×</button>  
+<button onclick="document.getElementById('calcInput').value+='0'">0</button>  
+<button onclick="document.getElementById('calcInput').value+='.'">.</button>  
+<button onclick="calc()">=</button>  
+<button onclick="document.getElementById('calcInput').value=''">C</button>  
+</div>  
+<div id="calcResult" style="font-size:20px;"></div>  
+</div>  
+</div>  
+
+<!-- INTERNET -->  
+<div id="net" class="window">  
+<header>Internet <button onclick="closeApp('net')">X</button></header>  
+<div class="content">  
+<div id="wifi" style="font-size:18px;">📶 WiFi: OFF</div>  
+<div id="mobile" style="font-size:18px;">📱 Mobile: OFF</div>  
+<button onclick="toggleNet()" style="width:100%; font-size:16px;">🌐 ВКЛ/ВЫКЛ интернет</button>  
+<div id="netStatus" style="margin-top:20px; font-size:16px;">Offline</div>  
+</div>  
+</div>  
+
+<!-- GAME -->  
+<div id="game" class="window">  
+<header>Game <button onclick="closeApp('game')">X</button></header>  
+<div class="content">  
+<div style="display:flex; gap:10px; margin-bottom:10px;">  
+<button onclick="startBall()" style="width:48%">🏀 Ball Game</button>  
+<button onclick="startDino()" style="width:48%">🦖 Dino Game</button>  
+</div>  
+<canvas id="c" width="340" height="240" style="border:2px solid lime; display:block; margin:0 auto;"></canvas>  
+<div id="score" style="text-align:center; font-size:18px; margin-top:10px;">Score: 0</div>  
+<div style="font-size:12px; opacity:0.7;">Dino: Пробел / тап | Ball: двигай пальцем</div>  
+</div>  
+</div>  
+
+<!-- TERMINAL -->  
+<div id="hack" class="window">  
+<header>Terminal <button onclick="closeApp('hack')">X</button></header>  
+<div class="content" id="terminal" style="height:280px; font-size:12px; overflow-y:auto;"></div>  
+<div style="display:flex; gap:5px;">  
+<input id="cmd" style="flex:1;" placeholder="help / battery / scan...">  
+<button onclick="runCmd()">Enter ▶</button>  
+</div>  
+</div>  
+<div id="bootScreen" style="
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    color:lime;
+    display:none;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:10001;
+    font-size:20px;
+">
+    <div id="bootText">⚡ Booting</div>
+
+    <div style="
+        width:200px;
+        height:10px;
+        border:1px solid lime;
+        margin-top:20px;
+    ">
+        <div id="bootBar" style="
+            width:0%;
+            height:100%;
+            background:lime;
+        "></div>
+    </div>
+
+    <div id="bootPercent" style="margin-top:10px;">0%</div>
+</div>
+
+<script>  
+// ================= BATTERY SYSTEM =================  
+let batteryLevel = 100;  
+let autoDischarge = false;  
+let dischargeInterval;  
+
+function updateBattery() {  
+    let batText = document.getElementById("battery");  
+    let batBig = document.getElementById("batLevelBig");  
+    let status = document.getElementById("autoDischargeStatus");  
+    
+    let color = batteryLevel > 30 ? "lime" : batteryLevel > 10 ? "yellow" : "red";  
+    batText.style.color = color;  
+    batBig.style.color = color;  
+    
+    batText.innerText = `🔋 ${batteryLevel}%`;  
+    batBig.innerText = `${batteryLevel}%`;  
+    
+    status.innerText = autoDischarge ? "ON" : "OFF";  
+    
+    if (batteryLevel <= 0) {  
+        document.getElementById("shutdown").style.display = "flex";  
+        document.body.style.pointerEvents = "none";  
+        clearInterval(dischargeInterval);  
+    }  
+}  
+
+function charge() {  
+    batteryLevel = Math.min(100, batteryLevel + 20);  
+    updateBattery();  
+}  
+
+function discharge() {  
+    batteryLevel = Math.max(0, batteryLevel - 10);  
+    updateBattery();  
+}  
+
+function toggleAuto() {  
+    autoDischarge = !autoDischarge;  
+    if (autoDischarge) {  
+        dischargeInterval = setInterval(() => {  
+            if (batteryLevel > 0) {  
+                batteryLevel = Math.max(0, batteryLevel - 1);  
+                updateBattery();  
+            }  
+        }, 10000); // 10   секунд = 1%  
+    } else {  
+        clearInterval(dischargeInterval);  
+    }  
+    updateBattery();  
+}  
+
+setInterval(updateBattery, 1000);  
+updateBattery();  
+
+// ================= LOCK SCREEN =================  
+function updateLock(){  
+    let d = new Date();  
+    let h = d.getHours();  
+    let m = d.getMinutes();  
+    if(h<10) h = "0" + h;  
+    if(m<10) m = "0" + m;  
+    document.getElementById("lockTime").innerText = h + ":" + m;  
+    document.getElementById("lockDate").innerText = d.toDateString();  
+}  
+setInterval(updateLock, 1000);  
+updateLock();  
+
+function unlock(){  
+    if (batteryLevel > 0) {  
+        document.getElementById("lockScreen").style.display = "none";  
+    }  
+}  
+
+// ================= CLOCK =================  
+function updateClock(){  
+    let d = new Date();  
+    let h = d.getHours();  
+    let m = d.getMinutes();  
+    let s = d.getSeconds();  
+    if(h<10) h = "0" + h;  
+    if(m<10) m = "0" + m;  
+    if(s<10) s = "0" + s;  
+    document.getElementById("clock").innerText = h + ":" + m + ":" + s;  
+}  
+setInterval(updateClock, 1000);  
+updateClock();  
+
+// ================= WINDOWS =================  
+function openApp(id){  
+    if (batteryLevel > 0) {  
+        document.getElementById(id).style.display = "flex";  
+    }  
+}  
+
+function closeApp(id){  
+    document.getElementById(id).style.display = "none";  
+}  
+
+// ================= CALCULATOR =================  
+function calc(){  
+    let v = document.getElementById("calcInput").value;  
+    try{  
+        let result = eval(v);  
+        document.getElementById("calcResult").innerText = "= " + result;  
+    } catch(e) {  
+        document.getElementById("calcResult").innerText = "Ошибка!";  
+    }  
+}  
+
+// ================= NETWORK =================  
+let net = false;  
+function toggleNet(){  
+    net = !net;  
+    document.getElementById("wifi").innerText = net ? "📶 WiFi: ON" : "📶 WiFi: OFF";  
+    document.getElementById("mobile").innerText = net ? "📱 Mobile: ON" : "📱 Mobile: OFF";  
+    document.getElementById("netStatus").innerText = net ? "🟢 Connected" : "🔴 Offline";  
+}  
+
+// ================= TERMINAL =================  
+function runCmd(){  
+    let cmd = document.getElementById("cmd").value.toLowerCase();  
+    let t = document.getElementById("terminal");  
+    
+    let time = new Date().toLocaleTimeString();  
+    let output = `<div>[${time}] <span style="color:lime;">${cmd}</span> → `;  
+    
+    if(cmd === "help"){  
+        output += "scan trace access clear battery net";  
+    } else if(cmd === "scan"){  
+        output += "🔍 Scanning ports... 22,80,443 OK";  
+    } else if(cmd === "access"){  
+        output += "❌ ACCESS DENIED 🔒";  
+    } else if(cmd === "clear"){  
+        t.innerHTML = "";  
+        document.getElementById("cmd").value = "";  
+        return;  
+    } else if(cmd === "battery"){  
+        output += `🔋 Battery: ${batteryLevel}% (${autoDischarge ? "AUTO ON" : "AUTO OFF"})`;  
+    } else if(cmd === "net"){  
+        output += net ? "🌐 Network: Connected" : "🌐 Network: Offline";  
+    } else {  
+        output += "❓ Unknown command. Type 'help'";  
+    }  
+    
+    t.innerHTML += output + "</div>";  
+    t.scrollTop = t.scrollHeight;  
+    document.getElementById("cmd").value = "";  
+}  
+
+// Enter в терминале  
+document.getElementById("cmd").addEventListener("keypress", function(e) {  
+    if (e.key === "Enter") runCmd();  
+});  
+
+// ================= GAME =================  
+let canvas = document.getElementById("c");  
+let ctx = canvas.getContext("2d");  
+let mode = "";  
+let score = 0;  
+
+// BALL GAME  
+let ball = {x: 170, y: 0, r: 12};  
+let player = {x: 120, w: 100};  
+
+function startBall(){  
+    if (batteryLevel <= 0) return;  
+    mode = "ball";  
+    score = 0;  
+    ball.y = 0;  
+    ball.x = 170;  
+    loop();  
+}  
+
+function drawBall(){  
+    ctx.fillStyle = "black";  
+    ctx.fillRect(0, 0, 340, 240);  
+
+    ctx.fillStyle = "yellow";  
+    ctx.beginPath();  
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);  
+    ctx.fill();  
+
+    ball.y += 2;  
+
+    ctx.fillStyle = "deepskyblue";  
+    ctx.fillRect(player.x, 220, player.w, 15);  
+
+    if(ball.y > 205 && ball.x > player.x && ball.x < player.x + player.w){  
+        score++;  
+        ball.y = 0;  
+        ball.x = Math.random() * 320 + 10;  
+    }  
+
+    if(ball.y > 240){  
+        ball.y = 0;  
+        ball.x = Math.random() * 320 + 10;  
+    }  
+
+    document.getElementById("score").innerText = "Score: " + score;  
+}  
+
+// DINO GAME  
+let dino = {y: 200, vy: 0, jump: false};  
+let obs = {x: 340};  
+
+function startDino(){  
+    if (batteryLevel <= 0) return;  
+    mode = "dino";  
+    score = 0;  
+    dino.y = 200;  
+    dino.vy = 0;  
+    obs.x = 340;  
+    loop();  
+}  
+
+function drawDino(){  
+    ctx.fillStyle = "black";  
+    ctx.fillRect(0, 0, 340, 240);  
+
+    ctx.fillStyle = "lime";  
+    ctx.fillRect(0, 225, 340, 5);  
+
+    // Dino  
+    ctx.fillStyle = "lime";  
+    ctx.fillRect(60, dino.y, 25, 25);  
+    ctx.fillRect(75, dino.y - 10, 10, 10); // голова  
+
+    dino.y += dino.vy;  
+    dino.vy += 0.8;  
+
+    if(dino.y >= 200){  
+        dino.y = 200;  
+        dino.vy = 0;  
+        dino.jump = false;  
+    }  
+
+    // Препятствие  
+    ctx.fillStyle = "red";  
+    ctx.fillRect(obs.x, 200, 25, 25);  
+
+    obs.x -= 5;  
+
+    if(obs.x < -25){  
+        obs.x = 340;  
+        score++;  
+    }  
+
+    // Коллизия  
+    if(obs.x < 85 && obs.x > 50 && dino.y > 175){  
+        alert("💀 Game Over!\nScore: " + score);  
+        mode = "";  
+    }  
+
+    document.getElementById("score").innerText = "Score: " + score;  
+}  
+
+function loop(){  
+    if(mode === "ball") drawBall();  
+    if(mode === "dino") drawDino();  
+    if(mode !== "") requestAnimationFrame(loop);  
+}  
+
+// Клавиатура  
+document.addEventListener("keydown", (e) => {  
+    if(batteryLevel <= 0 || mode !== "dino") return;  
+    if(e.code === "Space" && !dino.jump){  
+        dino.vy = -14;  
+        dino.jump = true;  
+        e.preventDefault();  
+    }  
+});  
+
+// Touch для Ball  
+canvas.addEventListener("touchmove", (e) => {  
+    if(batteryLevel <= 0 || mode !== "ball") return;  
+    let t = e.touches[0];  
+    let r = canvas.getBoundingClientRect();  
+    player.x = t.clientX - r.left - player.w/2;  
+    if(player.x < 0) player.x = 0;  
+    if(player.x > 340 - player.w) player.x = 340 - player.w;  
+    e.preventDefault();  
+}, {passive: false});  
+
+// Touch для Dino  
+canvas.addEventListener("touchstart", (e) => {  
+    if(batteryLevel <= 0 || mode !== "dino") return;  
+    if(!dino.jump){  
+        dino.vy = -14;  
+        dino.jump = true;  
+    }  
+    e.preventDefault();  
+}, {passive: false});  
+
+// Перезагрузка по F5 при выключенном  
+document.addEventListener("keydown", (e) => {  
+    if(e.key === "F5" && batteryLevel <= 0){  
+        location.reload();  
+    }  
+});  
+function reboot(){
+    let shutdown = document.getElementById("shutdown");
+    let boot = document.getElementById("bootScreen");
+
+    shutdown.style.display = "none";
+    boot.style.display = "flex";
+
+    let percent = 0;
+    let bar = document.getElementById("bootBar");
+    let text = document.getElementById("bootText");
+    let percentText = document.getElementById("bootPercent");
+
+    let dots = 0;
+
+    let interval = setInterval(() => {
+        percent += Math.random() * 5;
+        if(percent > 100) percent = 100;
+
+        bar.style.width = percent + "%";
+        percentText.innerText = Math.floor(percent) + "%";
+
+        // анимация точек
+        dots = (dots + 1) % 4;
+        text.innerText = "⚡ Booting" + ".".repeat(dots);
+
+        if(percent >= 100){
+            clearInterval(interval);
+
+            setTimeout(() => {
+                location.reload();
+            }, 800);
+        }
+    }, 120);
+}
+
+</script>  
+</body>  
+</html>
