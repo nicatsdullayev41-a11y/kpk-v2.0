@@ -14,13 +14,13 @@
             color: #0f0; 
             overflow: hidden; 
             height: 100vh; 
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
         
-        /* НЕОНОВОЕ МЕРЦАНИЕ (только свечение, без движения) */
+        /* НЕОНОВОЕ МЕРЦАНИЕ */
         @keyframes neonGlow {
-            0%, 100% { text-shadow: 0 0 3px #0f0, 0 0 5px #0f0, 0 0 10px #0f0; }
-            50% { text-shadow: 0 0 1px #0f0, 0 0 3px #0f0, 0 0 6px #0f0; }
+            0%, 100% { text-shadow: 0 0 3px currentColor, 0 0 5px currentColor, 0 0 10px currentColor; }
+            50% { text-shadow: 0 0 1px currentColor, 0 0 3px currentColor, 0 0 6px currentColor; }
         }
         
         #topbar, .window header, .app, button, .terminal-line, #lockTime, #lockDate {
@@ -28,13 +28,15 @@
         }
         
         .window {
-            border: 3px solid #0f0;
+            border: 3px solid;
             box-shadow: 0 0 20px rgba(0,255,0,0.5), inset 0 0 10px rgba(0,255,0,0.2);
             background: rgba(0,0,0,0.9);
+            transition: all 0.3s;
         }
         
         .window header {
             background: rgba(17,17,17,0.9);
+            border-bottom: 1px solid;
         }
         
         #lockScreen, #shutdown, #bootScreen {
@@ -43,39 +45,27 @@
         }
         
         .terminal-line {
-            border-left: 2px solid #0f0;
+            border-left: 2px solid;
             padding-left: 8px;
             margin: 4px 0;
         }
         
         button, input, textarea, .app {
             transition: all 0.2s;
-            box-shadow: 0 0 5px rgba(0,255,0,0.3);
+            box-shadow: 0 0 5px currentColor;
+            background: #000;
         }
         
         button:hover, .app:hover {
-            box-shadow: 0 0 15px rgba(0,255,0,0.8);
+            box-shadow: 0 0 15px currentColor;
             transform: scale(1.02);
         }
-        
-        /* ТЕМЫ */
-        body.theme-blue { color: #0af; }
-        body.theme-blue .window { border-color: #0af; box-shadow: 0 0 20px rgba(0,170,255,0.5); }
-        body.theme-blue .terminal-line { border-left-color: #0af; }
-        
-        body.theme-red { color: #f44; }
-        body.theme-red .window { border-color: #f44; box-shadow: 0 0 20px rgba(255,68,68,0.5); }
-        body.theme-red .terminal-line { border-left-color: #f44; }
-        
-        body.theme-purple { color: #c8f; }
-        body.theme-purple .window { border-color: #c8f; box-shadow: 0 0 20px rgba(200,136,255,0.5); }
-        body.theme-purple .terminal-line { border-left-color: #c8f; }
         
         .battery-widget { 
             background: rgba(10,10,10,0.8);
             backdrop-filter: blur(4px);
-            border: 1px solid #0f0;
-            box-shadow: 0 0 10px rgba(0,255,0,0.5);
+            border: 1px solid;
+            box-shadow: 0 0 10px currentColor;
             position: fixed;
             bottom: 10px;
             right: 10px;
@@ -89,15 +79,16 @@
         .folder-item, .file-item {
             padding: 8px;
             margin: 4px 0;
-            border: 1px solid #2a2a2a;
+            border: 1px solid rgba(255,255,255,0.3);
             border-radius: 6px;
             cursor: pointer;
             background: #0a0a0a;
             transition: all 0.2s;
+            color: inherit;
         }
         .folder-item:hover, .file-item:hover {
-            background: #1a3a1a;
-            box-shadow: 0 0 10px rgba(0,255,0,0.6);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 10px currentColor;
         }
         
         .breadcrumb {
@@ -114,7 +105,7 @@
             padding: 8px 14px;
             display: flex;
             justify-content: space-between;
-            border-bottom: 2px solid #0f0;
+            border-bottom: 2px solid;
             font-weight: bold;
             position: relative;
             z-index: 20;
@@ -134,7 +125,7 @@
         .app {
             width: 100px;
             height: 100px;
-            border: 2px solid #0f0;
+            border: 2px solid;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -152,7 +143,6 @@
             width: 90%;
             max-width: 420px;
             height: 520px;
-            border: 3px solid #0f0;
             background: #000;
             display: none;
             flex-direction: column;
@@ -166,7 +156,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #0f0;
             cursor: grab;
         }
         
@@ -185,9 +174,7 @@
         .content { flex: 1; padding: 12px; overflow-y: auto; }
         
         button, input, textarea {
-            background: #000;
-            color: #0f0;
-            border: 1px solid #0f0;
+            border: 1px solid;
             font-family: monospace;
             border-radius: 8px;
             padding: 6px 10px;
@@ -226,7 +213,6 @@
             width: 100%;
             height: 100%;
             background: #000;
-            color: #0f0;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -236,6 +222,43 @@
         #lockTime { font-size: 56px; }
         #lockDate { font-size: 20px; margin-bottom: 30px; }
         #battery { font-size: 16px; }
+        
+        /* ТЕМЫ - меняют ВСЕ цвета */
+        body.theme-green { color: #0f0; }
+        body.theme-green .window { border-color: #0f0; box-shadow: 0 0 20px rgba(0,255,0,0.5); }
+        body.theme-green .terminal-line { border-left-color: #0f0; }
+        body.theme-green .window header { border-bottom-color: #0f0; }
+        body.theme-green #topbar { border-bottom-color: #0f0; }
+        body.theme-green button, body.theme-green .app { border-color: #0f0; color: #0f0; }
+        body.theme-green input, body.theme-green textarea { border-color: #0f0; color: #0f0; }
+        body.theme-green .battery-widget { border-color: #0f0; color: #0f0; }
+        
+        body.theme-blue { color: #0af; }
+        body.theme-blue .window { border-color: #0af; box-shadow: 0 0 20px rgba(0,170,255,0.5); }
+        body.theme-blue .terminal-line { border-left-color: #0af; }
+        body.theme-blue .window header { border-bottom-color: #0af; }
+        body.theme-blue #topbar { border-bottom-color: #0af; }
+        body.theme-blue button, body.theme-blue .app { border-color: #0af; color: #0af; }
+        body.theme-blue input, body.theme-blue textarea { border-color: #0af; color: #0af; }
+        body.theme-blue .battery-widget { border-color: #0af; color: #0af; }
+        
+        body.theme-red { color: #f44; }
+        body.theme-red .window { border-color: #f44; box-shadow: 0 0 20px rgba(255,68,68,0.5); }
+        body.theme-red .terminal-line { border-left-color: #f44; }
+        body.theme-red .window header { border-bottom-color: #f44; }
+        body.theme-red #topbar { border-bottom-color: #f44; }
+        body.theme-red button, body.theme-red .app { border-color: #f44; color: #f44; }
+        body.theme-red input, body.theme-red textarea { border-color: #f44; color: #f44; }
+        body.theme-red .battery-widget { border-color: #f44; color: #f44; }
+        
+        body.theme-purple { color: #c8f; }
+        body.theme-purple .window { border-color: #c8f; box-shadow: 0 0 20px rgba(200,136,255,0.5); }
+        body.theme-purple .terminal-line { border-left-color: #c8f; }
+        body.theme-purple .window header { border-bottom-color: #c8f; }
+        body.theme-purple #topbar { border-bottom-color: #c8f; }
+        body.theme-purple button, body.theme-purple .app { border-color: #c8f; color: #c8f; }
+        body.theme-purple input, body.theme-purple textarea { border-color: #c8f; color: #c8f; }
+        body.theme-purple .battery-widget { border-color: #c8f; color: #c8f; }
     </style>
 </head>
 <body class="theme-green">
@@ -266,21 +289,21 @@
 
 <!-- БРАУЗЕР -->
 <div id="browser" class="window"><header>🌐 БРАУЗЕР <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('browser')">_</button><button class="close-btn" onclick="closeApp('browser')">✖</button></div></header>
-<div class="content"><div style="display:flex; gap:8px;"><input id="browserUrl" placeholder="kpk://home" value="kpk://home"><button onclick="browserGo()">GO</button></div><div id="browserContent" style="background:#001000; border:1px solid #0f0; padding:10px; height:380px; overflow-y:auto; margin-top:10px;"></div></div></div>
+<div class="content"><div style="display:flex; gap:8px;"><input id="browserUrl" placeholder="kpk://home" value="kpk://home"><button onclick="browserGo()">GO</button></div><div id="browserContent" style="background:#001000; border:1px solid; padding:10px; height:380px; overflow-y:auto; margin-top:10px;"></div></div></div>
 
 <!-- РЕДАКТОР -->
 <div id="editor" class="window"><header>✏️ РЕДАКТОР <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('editor')">_</button><button class="close-btn" onclick="closeApp('editor')">✖</button></div></header>
-<div class="content"><div style="display:flex; gap:8px; margin-bottom:10px;"><input id="editorFilename" placeholder="имя_файла.txt"><button onclick="editorSave()">💾</button><button onclick="editorLoad()">📂</button></div><textarea id="editorArea" rows="18" style="width:100%; background:#000; color:#0f0; border:1px solid #0f0;"></textarea></div></div>
+<div class="content"><div style="display:flex; gap:8px; margin-bottom:10px;"><input id="editorFilename" placeholder="имя_файла.txt"><button onclick="editorSave()">💾</button><button onclick="editorLoad()">📂</button></div><textarea id="editorArea" rows="18" style="width:100%; background:#000; border:1px solid;"></textarea></div></div>
 
 <!-- АРКАДЫ -->
 <div id="games" class="window"><header>🎮 АРКАДЫ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('games')">_</button><button class="close-btn" onclick="closeApp('games')">✖</button></div></header>
-<div class="content"><div style="display:flex; gap:10px; margin-bottom:15px;"><button onclick="startSnakeGame()" style="flex:1;">🐍 ЗМЕЙКА</button><button onclick="startTetrisGame()" style="flex:1;">🧩 ТЕТРИС</button></div><div id="gameContainer"><canvas id="snakeCanvas" width="380" height="380" style="border:2px solid #0f0; width:100%; background:#000; display:none;"></canvas><canvas id="tetrisCanvas" width="300" height="400" style="border:2px solid #0f0; width:100%; background:#000; display:none;"></canvas><div id="gameScore" style="text-align:center; margin-top:10px;">🎮 Выберите игру</div></div></div></div>
+<div class="content"><div style="display:flex; gap:10px; margin-bottom:15px;"><button onclick="startSnakeGame()" style="flex:1;">🐍 ЗМЕЙКА</button><button onclick="startTetrisGame()" style="flex:1;">🧩 ТЕТРИС</button></div><div id="gameContainer"><canvas id="snakeCanvas" width="380" height="380" style="border:2px solid; width:100%; background:#000; display:none;"></canvas><canvas id="tetrisCanvas" width="300" height="400" style="border:2px solid; width:100%; background:#000; display:none;"></canvas><div id="gameScore" style="text-align:center; margin-top:10px;">🎮 Выберите игру</div></div></div></div>
 
 <div id="battery" class="window"><header>🔋 БАТАРЕЯ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('battery')">_</button><button class="close-btn" onclick="closeApp('battery')">✖</button></div></header>
 <div class="content"><div id="batLevelBig" style="font-size:52px; text-align:center;"></div><button onclick="charge()">🔌 +20%</button><button onclick="discharge()">📉 -10%</button><div>Авторазряд: <span id="autoDischargeStatus">OFF</span></div><button onclick="toggleAuto()">🔄 АВТОРАЗРЯД</button></div></div>
 
 <div id="notes" class="window"><header>📓 ЗАМЕТКИ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('notes')">_</button><button class="close-btn" onclick="closeApp('notes')">✖</button></div></header>
-<div class="content"><textarea id="notesArea" style="width:100%; height:400px; background:#000; color:#0f0;"></textarea><button onclick="saveNotes()">💾 СОХРАНИТЬ</button></div></div>
+<div class="content"><textarea id="notesArea" style="width:100%; height:400px; background:#000; border:1px solid;"></textarea><button onclick="saveNotes()">💾 СОХРАНИТЬ</button></div></div>
 
 <div id="calc" class="window"><header>🧮 КАЛЬКУЛЯТОР <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('calc')">_</button><button class="close-btn" onclick="closeApp('calc')">✖</button></div></header>
 <div class="content"><input id="calcInput" placeholder="2+2*3"><div style="display:flex; flex-wrap:wrap; gap:5px;"><button onclick="document.getElementById('calcInput').value+='1'">1</button><button onclick="document.getElementById('calcInput').value+='2'">2</button><button onclick="document.getElementById('calcInput').value+='3'">3</button><button onclick="document.getElementById('calcInput').value+='+'">+</button><button onclick="document.getElementById('calcInput').value+='4'">4</button><button onclick="document.getElementById('calcInput').value+='5'">5</button><button onclick="document.getElementById('calcInput').value+='6'">6</button><button onclick="document.getElementById('calcInput').value+='-'">-</button><button onclick="document.getElementById('calcInput').value+='7'">7</button><button onclick="document.getElementById('calcInput').value+='8'">8</button><button onclick="document.getElementById('calcInput').value+='9'">9</button><button onclick="document.getElementById('calcInput').value+='*'">*</button><button onclick="document.getElementById('calcInput').value+='0'">0</button><button onclick="document.getElementById('calcInput').value+='/'">/</button><button onclick="calc()">=</button><button onclick="document.getElementById('calcInput').value=''">C</button></div><div id="calcResult" style="font-size:20px;"></div></div></div>
@@ -346,7 +369,7 @@ let fileSystem = JSON.parse(localStorage.getItem('kpk_files')) || { "/": { type:
 if(!fileSystem["/system"]) fileSystem["/system"] = { type: "folder", children: ["config.txt"], content: {} };
 if(!fileSystem["/documents"]) fileSystem["/documents"] = { type: "folder", children: ["readme.txt"], content: {} };
 if(!fileSystem["/system/config.txt"]) fileSystem["/system/config.txt"] = { type: "file", content: "system_version=2.0\nneon_mode=active" };
-if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0 с NEON эффектом!" };
+if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0!" };
 
 let currentPath = "/";
 function saveFileSystem() { localStorage.setItem('kpk_files', JSON.stringify(fileSystem)); }
@@ -461,8 +484,8 @@ function clearLinesTetris() { let linesCleared = 0; for(let y=0; y<20; y++) if(t
 function drawTetris() {
     tetrisCtx.fillStyle = "black"; tetrisCtx.fillRect(0,0,300,400);
     let cellSize = 20;
-    for(let y=0; y<20; y++) for(let x=0; x<10; x++) if(tetrisBoard[y][x]) { tetrisCtx.fillStyle = "#0f0"; tetrisCtx.fillRect(x*cellSize, y*cellSize, cellSize-1, cellSize-1); }
-    for(let y=0; y<tetrisCurrentPiece.length; y++) for(let x=0; x<tetrisCurrentPiece[0].length; x++) if(tetrisCurrentPiece[y][x]) { tetrisCtx.fillStyle = "#0f0"; tetrisCtx.fillRect((tetrisCurrentX+x)*cellSize, (tetrisCurrentY+y)*cellSize, cellSize-1, cellSize-1); }
+    for(let y=0; y<20; y++) for(let x=0; x<10; x++) if(tetrisBoard[y][x]) { tetrisCtx.fillStyle = getComputedStyle(document.body).color; tetrisCtx.fillRect(x*cellSize, y*cellSize, cellSize-1, cellSize-1); }
+    for(let y=0; y<tetrisCurrentPiece.length; y++) for(let x=0; x<tetrisCurrentPiece[0].length; x++) if(tetrisCurrentPiece[y][x]) { tetrisCtx.fillStyle = getComputedStyle(document.body).color; tetrisCtx.fillRect((tetrisCurrentX+x)*cellSize, (tetrisCurrentY+y)*cellSize, cellSize-1, cellSize-1); }
 }
 function gameOverTetris() { clearInterval(tetrisLoop); alert("💀 GAME OVER! Счёт: " + tetrisScore); startTetrisGame(); }
 function rotateTetris() { let rotated = tetrisCurrentPiece[0].map((_,idx) => tetrisCurrentPiece.map(row => row[idx]).reverse()); let oldPiece = tetrisCurrentPiece; tetrisCurrentPiece = rotated; if(collisionTetris()) tetrisCurrentPiece = oldPiece; else drawTetris(); }
@@ -604,7 +627,12 @@ document.getElementById("cmd")?.addEventListener("keydown", (e) => {
 });
 
 // ========== ТЕМЫ ==========
-function setTheme(theme) { document.body.className = `theme-${theme}`; localStorage.setItem('kpk_theme', theme); }
+function setTheme(theme) { 
+    document.body.className = `theme-${theme}`; 
+    localStorage.setItem('kpk_theme', theme);
+    // Обновляем цвет в тетрисе
+    if(tetrisLoop) drawTetris();
+}
 function clearStorage() { if(confirm("Очистить все данные?")) { localStorage.clear(); location.reload(); } }
 let savedTheme = localStorage.getItem('kpk_theme'); if(savedTheme) setTheme(savedTheme);
 function saveNotes() { localStorage.setItem('kpk_notes', document.getElementById("notesArea").value); alert("💾 Сохранено!"); }
@@ -673,7 +701,7 @@ window.addEventListener("load", () => {
     if(term) term.innerHTML = `<div class="terminal-line">[SYSTEM] KPK V2.0 | НЕОН</div>
 <div class="terminal-line">[SYSTEM] 🔥 ХАК-КОМАНДЫ: ddos, exploit, traceroute, whois, hacktools</div>
 <div class="terminal-line">[SYSTEM] 🎮 ИГРЫ: snake, tetris, guess</div>
-<div class="terminal-line">[SYSTEM] 🌈 Эффект: Неоновое свечение (без движения)</div>
+<div class="terminal-line">[SYSTEM] 🌈 Меняй тему в настройках - меняется ВСЁ!</div>
 <div class="terminal-line">[SYSTEM] Введите 'help' для полного списка</div>`;
     document.querySelectorAll(".window").forEach((win, idx) => { win.style.left = (20 + idx * 25) + "px"; win.style.top = (70 + idx * 15) + "px"; });
 });
