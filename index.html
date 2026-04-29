@@ -316,7 +316,7 @@
 <div class="content" id="terminal" style="height:340px; overflow-y:auto; font-size:12px;"></div><div style="display:flex; gap:6px; padding:8px;"><span>➜</span><input id="cmd" style="flex:1;" placeholder="help | ddos 1.2.3.4 | exploit | hacktools"><button onclick="runCmd()">⏎</button></div></div>
 
 <div id="settings" class="window"><header>⚙️ НАСТРОЙКИ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('settings')">_</button><button class="close-btn" onclick="closeApp('settings')">✖</button></div></header>
-<div class="content"><h3>🎨 ТЕМА</h3><div class="theme-selector"><div class="theme-btn theme-green-bg" onclick="setTheme('green')"></div><div class="theme-btn theme-blue-bg" onclick="setTheme('blue')"></div><div class="theme-btn theme-red-bg" onclick="setTheme('red')"></div><div class="theme-btn theme-purple-bg" onclick="setTheme('purple')"></div></div><hr><button onclick="clearStorage()">🗑️ ОЧИСТИТЬ ДАННЫЕ</button><hr><div style="text-align:center;">🌈 NEON MODE ACTIVE</div></div></div>
+<div class="content"><h3>🎨 ТЕМА</h3><div class="theme-selector"><div class="theme-btn theme-green-bg" onclick="setTheme('green')"></div><div class="theme-btn theme-blue-bg" onclick="setTheme('blue')"></div><div class="theme-btn theme-red-bg" onclick="setTheme('red')"></div><div class="theme-btn theme-purple-bg" onclick="setTheme('purple')"></div></div><hr><button onclick="clearStorage()">🗑️ ОЧИСТИТЬ ДАННЫЕ</button></div></div>
 
 <div id="bootScreen"><div id="bootText">⚡ BOOTING</div><div class="boot-container"><div id="bootBar"></div></div><div id="bootPercent">0%</div></div>
 
@@ -368,7 +368,7 @@ function showMyIP() {
 let fileSystem = JSON.parse(localStorage.getItem('kpk_files')) || { "/": { type: "folder", children: ["system", "documents"], content: {} } };
 if(!fileSystem["/system"]) fileSystem["/system"] = { type: "folder", children: ["config.txt"], content: {} };
 if(!fileSystem["/documents"]) fileSystem["/documents"] = { type: "folder", children: ["readme.txt"], content: {} };
-if(!fileSystem["/system/config.txt"]) fileSystem["/system/config.txt"] = { type: "file", content: "system_version=2.0\nneon_mode=active" };
+if(!fileSystem["/system/config.txt"]) fileSystem["/system/config.txt"] = { type: "file", content: "system_version=2.0" };
 if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0!" };
 
 let currentPath = "/";
@@ -484,8 +484,9 @@ function clearLinesTetris() { let linesCleared = 0; for(let y=0; y<20; y++) if(t
 function drawTetris() {
     tetrisCtx.fillStyle = "black"; tetrisCtx.fillRect(0,0,300,400);
     let cellSize = 20;
-    for(let y=0; y<20; y++) for(let x=0; x<10; x++) if(tetrisBoard[y][x]) { tetrisCtx.fillStyle = getComputedStyle(document.body).color; tetrisCtx.fillRect(x*cellSize, y*cellSize, cellSize-1, cellSize-1); }
-    for(let y=0; y<tetrisCurrentPiece.length; y++) for(let x=0; x<tetrisCurrentPiece[0].length; x++) if(tetrisCurrentPiece[y][x]) { tetrisCtx.fillStyle = getComputedStyle(document.body).color; tetrisCtx.fillRect((tetrisCurrentX+x)*cellSize, (tetrisCurrentY+y)*cellSize, cellSize-1, cellSize-1); }
+    let color = getComputedStyle(document.body).color;
+    for(let y=0; y<20; y++) for(let x=0; x<10; x++) if(tetrisBoard[y][x]) { tetrisCtx.fillStyle = color; tetrisCtx.fillRect(x*cellSize, y*cellSize, cellSize-1, cellSize-1); }
+    for(let y=0; y<tetrisCurrentPiece.length; y++) for(let x=0; x<tetrisCurrentPiece[0].length; x++) if(tetrisCurrentPiece[y][x]) { tetrisCtx.fillStyle = color; tetrisCtx.fillRect((tetrisCurrentX+x)*cellSize, (tetrisCurrentY+y)*cellSize, cellSize-1, cellSize-1); }
 }
 function gameOverTetris() { clearInterval(tetrisLoop); alert("💀 GAME OVER! Счёт: " + tetrisScore); startTetrisGame(); }
 function rotateTetris() { let rotated = tetrisCurrentPiece[0].map((_,idx) => tetrisCurrentPiece.map(row => row[idx]).reverse()); let oldPiece = tetrisCurrentPiece; tetrisCurrentPiece = rotated; if(collisionTetris()) tetrisCurrentPiece = oldPiece; else drawTetris(); }
@@ -510,7 +511,7 @@ function browserGo() {
     let url = document.getElementById("browserUrl").value.trim().toLowerCase();
     let content = document.getElementById("browserContent");
     if(url === "" || url === "kpk://home") content.innerHTML = `<div style="padding:20px; text-align:center;">🌐 KPK BROWSER<br>📌 kpk://news | kpk://ipgen | kpk://scan</div>`;
-    else if(url === "kpk://news") content.innerHTML = `<div>🔥 НОВОСТИ: KPK V2.0 с NEON эффектом!</div>`;
+    else if(url === "kpk://news") content.innerHTML = `<div>🔥 НОВОСТИ: KPK V2.0 с новыми функциями!</div>`;
     else if(url === "kpk://ipgen") { let ips=[]; for(let i=0;i<20;i++) ips.push(`${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); content.innerHTML = `<div>🔍 IP:<br>${ips.join('<br>')}<button onclick="browserGoTo('kpk://ipgen')">🔄</button></div>`; }
     else if(url === "kpk://scan") content.innerHTML = `<div>🔎 ПОРТЫ: 22🔓 80🔓 443🔓 8080🔓 3306🔒</div>`;
     else content.innerHTML = `<div>❌ Страница не найдена</div>`;
@@ -592,7 +593,7 @@ function runCmd() {
     else if(cmd.startsWith("scanip ")) { let target=cmd.substring(7); let openPorts = [22, 80, 443, 8080].filter(() => Math.random() > 0.4); output = `🔍 СКАНИРОВАНИЕ ${target}\nОткрытые порты: ${openPorts.join(', ') || 'нет'}`; }
     else if(cmd === "ports") { output = "🔌 ПОРТЫ (localhost):\n22(SSH) 🔓 | 80(HTTP) 🔓 | 443(HTTPS) 🔓 | 3306(MySQL) 🔒"; }
     else if(cmd === "help") {
-        output = `КОМАНДЫ KPK V2.0 | НЕОН
+        output = `КОМАНДЫ KPK V2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔥 ХАК-КОМАНДЫ:
   ddos <IP>     - DDoS атака | exploit - Поиск уязвимостей
@@ -606,7 +607,7 @@ function runCmd() {
 🌐 СЕТЬ: iplist, scanip, ports, net on/off, ping
 💻 ДРУГИЕ: browser, editor, notes, clear, reboot, history`;
     }
-    else if(cmd === "system") { output = `🖥️ KPK V2.0 | НЕОН\n🔋 Батарея: ${Math.floor(batteryLevel)}%\n🌐 Сеть: ${net?"ВКЛ":"ВЫКЛ"}\n🌈 Эффект: Неоновое свечение`; }
+    else if(cmd === "system") { output = `🖥️ KPK V2.0\n🔋 Батарея: ${Math.floor(batteryLevel)}%\n🌐 Сеть: ${net?"ВКЛ":"ВЫКЛ"}`; }
     else if(cmd === "battery") { output = `🔋 Заряд: ${Math.floor(batteryLevel)}%`; }
     else if(cmd === "clear") { term.innerHTML = ""; input.value = ""; return; }
     else if(cmd === "reboot") { output = "⚠️ ПЕРЕЗАГРУЗКА..."; term.innerHTML += `<div class="terminal-line">${output}</div>`; setTimeout(() => reboot(), 1000); input.value = ""; term.scrollTop = term.scrollHeight; return; }
@@ -630,7 +631,6 @@ document.getElementById("cmd")?.addEventListener("keydown", (e) => {
 function setTheme(theme) { 
     document.body.className = `theme-${theme}`; 
     localStorage.setItem('kpk_theme', theme);
-    // Обновляем цвет в тетрисе
     if(tetrisLoop) drawTetris();
 }
 function clearStorage() { if(confirm("Очистить все данные?")) { localStorage.clear(); location.reload(); } }
@@ -698,10 +698,10 @@ window.addEventListener("load", () => {
     refreshFileList();
     loadNotes();
     let term = document.getElementById("terminal");
-    if(term) term.innerHTML = `<div class="terminal-line">[SYSTEM] KPK V2.0 | НЕОН</div>
+    if(term) term.innerHTML = `<div class="terminal-line">[SYSTEM] KPK V2.0 загружена</div>
 <div class="terminal-line">[SYSTEM] 🔥 ХАК-КОМАНДЫ: ddos, exploit, traceroute, whois, hacktools</div>
 <div class="terminal-line">[SYSTEM] 🎮 ИГРЫ: snake, tetris, guess</div>
-<div class="terminal-line">[SYSTEM] 🌈 Меняй тему в настройках - меняется ВСЁ!</div>
+<div class="terminal-line">[SYSTEM] Меняй тему в настройках - меняется ВСЁ!</div>
 <div class="terminal-line">[SYSTEM] Введите 'help' для полного списка</div>`;
     document.querySelectorAll(".window").forEach((win, idx) => { win.style.left = (20 + idx * 25) + "px"; win.style.top = (70 + idx * 15) + "px"; });
 });
