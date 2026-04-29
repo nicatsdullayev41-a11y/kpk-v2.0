@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>KPK V2.0</title>
+    <title>KPK V2.0 | ХАКЕРСКАЯ ВЕРСИЯ</title>
     <style>
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         
@@ -49,6 +49,8 @@
             align-items: center;
             cursor: grab;
         }
+        
+        .window header:active { cursor: grabbing; }
         
         .window-buttons { display: flex; gap: 8px; }
         .minimize-btn, .close-btn {
@@ -127,6 +129,13 @@
             z-index: 100;
             border-radius: 14px;
             overflow: hidden;
+        }
+        
+        .window.dragging {
+            opacity: 0.85;
+            cursor: grabbing;
+            transition: none;
+            box-shadow: 0 0 30px currentColor;
         }
         
         .battery-widget { 
@@ -219,6 +228,8 @@
         }
         .folder-item:hover, .file-item:hover { background: #1a3a1a; }
         .breadcrumb { padding: 8px; background: #0a0a0a; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: #0f0; }
+        
+        .terminal-line { border-left: 2px solid currentColor; padding-left: 8px; margin: 4px 0; }
     </style>
 </head>
 <body class="theme-green">
@@ -226,7 +237,7 @@
 <div id="shutdown"><div>🔋 КРИТИЧЕСКИЙ РАЗРЯД</div><div style="font-size:58px; margin:20px;">0%</div><button onclick="reboot()">🔄 ПЕРЕЗАГРУЗКА</button></div>
 <div id="lockScreen"><div id="lockTime"></div><div id="lockDate"></div><button onclick="unlock()">🔓 РАЗБЛОКИРОВАТЬ</button></div>
 
-<div id="topbar"><div>⚡ KPK V2.0</div><div><span id="clock"></span> <span id="battery">🔋 100%</span></div></div>
+<div id="topbar"><div>⚡ KPK V2.0 | HACK EDITION</div><div><span id="clock"></span> <span id="battery">🔋 100%</span></div></div>
 
 <div class="battery-widget" id="batteryWidget" onclick="openApp('battery')">🔋 100%</div>
 
@@ -268,7 +279,7 @@
     <div id="playerFolders"></div>
     <div id="playerTracks"></div>
     <div class="add-track">
-        <input type="text" id="newTrackName" placeholder="Название песни" style="background:#fff; color:#000;">
+        <input type="text" id="newTrackName" placeholder="Название песни">
         <input type="file" id="mp3FileInput" accept=".mp3" style="display:none;">
         <button onclick="selectMP3File()" class="mp3-select-btn">📁 Выбрать MP3</button>
         <button onclick="addTrackToCurrentFolder()">➕ Добавить</button>
@@ -278,7 +289,7 @@
         <button onclick="pauseTrack()">⏸ PAUSE</button>
         <button onclick="stopTrack()">⏹ STOP</button>
     </div>
-    <div id="nowPlaying" style="text-align:center; margin-top:10px; color:#0f0;">🎵 Нет трека</div>
+    <div id="nowPlaying" style="text-align:center; margin-top:10px;">🎵 Нет трека</div>
     <button onclick="createPlayerFolder()" style="width:100%; margin-top:10px;">📁 Новая папка</button>
 </div></div>
 
@@ -294,7 +305,7 @@
     
     <h3>⏰ БУДИЛЬНИК</h3>
     <div class="alarm-input">
-        <input type="time" id="alarmTime" style="background:#fff; color:#000;">
+        <input type="time" id="alarmTime">
         <button onclick="addAlarm()">🔔 Установить</button>
     </div>
     <div id="alarmList" class="alarm-list"></div>
@@ -309,10 +320,10 @@
 <div class="content"><div class="breadcrumb" id="currentPathDisplay">📂 /</div><div id="fileList"></div><div style="display:flex; gap:8px; margin-top:12px;"><button onclick="createFolder()">📁 Папка</button><button onclick="createFile()">📄 Файл</button></div></div></div>
 
 <div id="browser" class="window"><header>🌐 БРАУЗЕР <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('browser')">_</button><button class="close-btn" onclick="closeApp('browser')">✖</button></div></header>
-<div class="content"><div style="display:flex; gap:8px;"><input id="browserUrl" placeholder="kpk://home" value="kpk://home" style="background:#fff; color:#000;"><button onclick="browserGo()">GO</button></div><div id="browserContent" style="background:#001000; border:1px solid; padding:10px; height:380px; overflow-y:auto; margin-top:10px;"></div></div></div>
+<div class="content"><div style="display:flex; gap:8px;"><input id="browserUrl" placeholder="kpk://home" value="kpk://home"><button onclick="browserGo()">GO</button></div><div id="browserContent" style="background:#001000; border:1px solid; padding:10px; height:380px; overflow-y:auto; margin-top:10px;"></div></div></div>
 
 <div id="editor" class="window"><header>✏️ РЕДАКТОР <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('editor')">_</button><button class="close-btn" onclick="closeApp('editor')">✖</button></div></header>
-<div class="content"><div style="display:flex; gap:8px; margin-bottom:10px;"><input id="editorFilename" placeholder="имя_файла.txt" style="background:#fff; color:#000;"><button onclick="editorSave()">💾</button><button onclick="editorLoad()">📂</button></div><textarea id="editorArea" rows="18" style="width:100%; background:#000; border:1px solid #0f0; color:#0f0;"></textarea></div></div>
+<div class="content"><div style="display:flex; gap:8px; margin-bottom:10px;"><input id="editorFilename" placeholder="имя_файла.txt"><button onclick="editorSave()">💾</button><button onclick="editorLoad()">📂</button></div><textarea id="editorArea" rows="18" style="width:100%; background:#000; border:1px solid #0f0; color:#0f0;"></textarea></div></div>
 
 <div id="games" class="window"><header>🎮 АРКАДЫ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('games')">_</button><button class="close-btn" onclick="closeApp('games')">✖</button></div></header>
 <div class="content"><div style="display:flex; gap:10px;"><button onclick="startSnakeGame()" style="flex:1;">🐍 ЗМЕЙКА</button><button onclick="startTetrisGame()" style="flex:1;">🧩 ТЕТРИС</button></div><canvas id="snakeCanvas" width="380" height="380" style="border:2px solid; width:100%; background:#000; display:none;"></canvas><canvas id="tetrisCanvas" width="300" height="400" style="border:2px solid; width:100%; background:#000; display:none;"></canvas><div id="gameScore" style="text-align:center;">SCORE: 0</div></div></div>
@@ -324,13 +335,15 @@
 <div class="content"><textarea id="notesArea" style="width:100%; height:400px; background:#000; border:1px solid #0f0; color:#0f0;"></textarea><button onclick="saveNotes()">💾 СОХРАНИТЬ</button></div></div>
 
 <div id="calc" class="window"><header>🧮 КАЛЬКУЛЯТОР <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('calc')">_</button><button class="close-btn" onclick="closeApp('calc')">✖</button></div></header>
-<div class="content"><input id="calcInput" placeholder="2+2*3" style="background:#fff; color:#000;"><div style="display:flex; flex-wrap:wrap; gap:5px;"><button onclick="document.getElementById('calcInput').value+='1'">1</button><button onclick="document.getElementById('calcInput').value+='2'">2</button><button onclick="document.getElementById('calcInput').value+='3'">3</button><button onclick="document.getElementById('calcInput').value+='+'">+</button><button onclick="document.getElementById('calcInput').value+='4'">4</button><button onclick="document.getElementById('calcInput').value+='5'">5</button><button onclick="document.getElementById('calcInput').value+='6'">6</button><button onclick="document.getElementById('calcInput').value+='-'">-</button><button onclick="document.getElementById('calcInput').value+='7'">7</button><button onclick="document.getElementById('calcInput').value+='8'">8</button><button onclick="document.getElementById('calcInput').value+='9'">9</button><button onclick="document.getElementById('calcInput').value+='*'">*</button><button onclick="document.getElementById('calcInput').value+='0'">0</button><button onclick="document.getElementById('calcInput').value+='/'">/</button><button onclick="calc()">=</button><button onclick="document.getElementById('calcInput').value=''">C</button></div><div id="calcResult" style="font-size:20px;"></div></div></div>
+<div class="content"><input id="calcInput" placeholder="2+2*3"><div style="display:flex; flex-wrap:wrap; gap:5px;"><button onclick="document.getElementById('calcInput').value+='1'">1</button><button onclick="document.getElementById('calcInput').value+='2'">2</button><button onclick="document.getElementById('calcInput').value+='3'">3</button><button onclick="document.getElementById('calcInput').value+='+'">+</button><button onclick="document.getElementById('calcInput').value+='4'">4</button><button onclick="document.getElementById('calcInput').value+='5'">5</button><button onclick="document.getElementById('calcInput').value+='6'">6</button><button onclick="document.getElementById('calcInput').value+='-'">-</button><button onclick="document.getElementById('calcInput').value+='7'">7</button><button onclick="document.getElementById('calcInput').value+='8'">8</button><button onclick="document.getElementById('calcInput').value+='9'">9</button><button onclick="document.getElementById('calcInput').value+='*'">*</button><button onclick="document.getElementById('calcInput').value+='0'">0</button><button onclick="document.getElementById('calcInput').value+='/'">/</button><button onclick="calc()">=</button><button onclick="document.getElementById('calcInput').value=''">C</button></div><div id="calcResult" style="font-size:20px;"></div></div></div>
 
 <div id="net" class="window"><header>🌍 СЕТЬ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('net')">_</button><button class="close-btn" onclick="closeApp('net')">✖</button></div></header>
 <div class="content"><div id="wifi">📶 WiFi: OFF</div><div id="mobile">📱 Mobile: OFF</div><button onclick="toggleNet()">🔁 ВКЛ/ВЫКЛ</button><div id="netStatus">⚫ Offline</div><button onclick="simulatePing()">📡 ПИНГ</button><button onclick="showMyIP()">🌐 МОЙ IP</button><div id="myIpDisplay"></div></div></div>
 
-<div id="hack" class="window"><header>💻 ТЕРМИНАЛ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('hack')">_</button><button class="close-btn" onclick="closeApp('hack')">✖</button></div></header>
-<div class="content" id="terminal" style="height:340px; overflow-y:auto; font-size:12px;"></div><div style="display:flex; gap:6px; padding:8px;"><span>➜</span><input id="cmd" style="flex:1; background:#fff; color:#000;" placeholder="help | paint | player | alarm"><button onclick="runCmd()">⏎</button></div></div>
+<!-- ТЕРМИНАЛ С ХАК-КОМАНДАМИ -->
+<div id="hack" class="window"><header>💻 ТЕРМИНАЛ | HACK EDITION <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('hack')">_</button><button class="close-btn" onclick="closeApp('hack')">✖</button></div></header>
+<div class="content" id="terminal" style="height:340px; overflow-y:auto; font-size:12px;"></div>
+<div style="display:flex; gap:6px; padding:8px;"><span>➜</span><input id="cmd" style="flex:1; background:#fff; color:#000;" placeholder="help | ddos 1.2.3.4 | exploit"><button onclick="runCmd()">⏎</button></div></div>
 
 <div id="settings" class="window"><header>⚙️ НАСТРОЙКИ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('settings')">_</button><button class="close-btn" onclick="closeApp('settings')">✖</button></div></header>
 <div class="content"><h3>🎨 ТЕМА</h3><div class="theme-selector"><div class="theme-btn theme-green-bg" onclick="setTheme('green')"></div><div class="theme-btn theme-blue-bg" onclick="setTheme('blue')"></div><div class="theme-btn theme-red-bg" onclick="setTheme('red')"></div><div class="theme-btn theme-purple-bg" onclick="setTheme('purple')"></div></div><hr><button onclick="clearStorage()">🗑️ ОЧИСТИТЬ ДАННЫЕ</button></div></div>
@@ -422,18 +435,14 @@ let currentTrackObj = null;
 let currentAudio = null;
 let selectedMP3File = null;
 
-function selectMP3File() {
-    document.getElementById("mp3FileInput").click();
-}
+function selectMP3File() { document.getElementById("mp3FileInput").click(); }
 document.getElementById("mp3FileInput").addEventListener("change", function(e) {
     let file = e.target.files[0];
     if(file && file.type === "audio/mpeg") {
         selectedMP3File = file;
         document.getElementById("newTrackName").value = file.name.replace(".mp3", "");
         alert(`✅ Выбран MP3: ${file.name}`);
-    } else if(file) {
-        alert("❌ Пожалуйста, выберите MP3 файл!");
-    }
+    } else if(file) { alert("❌ Выберите MP3 файл!"); }
 });
 
 function refreshPlayer() {
@@ -453,7 +462,7 @@ function loadPlayerFolder(folder) {
         let track = playerFolders[folder][i];
         tracksDiv.innerHTML += `<div class="player-track" onclick="selectTrack('${folder}', ${i})"><span>🎵 ${track.name}</span><button onclick="deleteTrack('${folder}', ${i})">🗑️</button></div>`;
     }
-    if(playerFolders[folder].length === 0) tracksDiv.innerHTML += "<div style='color:#888;'>Нет треков. Добавьте MP3 файл!</div>";
+    if(playerFolders[folder].length === 0) tracksDiv.innerHTML += "<div style='color:#888;'>Нет треков. Добавьте MP3!</div>";
 }
 function selectTrack(folder, index) {
     currentTrackObj = playerFolders[folder][index];
@@ -463,31 +472,19 @@ function selectTrack(folder, index) {
 }
 function playTrack() {
     if(!currentTrackObj) { alert("Выберите трек!"); return; }
-    if(currentTrackObj.url && currentTrackObj.url.startsWith("blob:")) {
+    if(currentTrackObj.url && (currentTrackObj.url.startsWith("blob:") || currentTrackObj.url.startsWith("http"))) {
         if(currentAudio) { currentAudio.pause(); currentAudio = null; }
         currentAudio = new Audio(currentTrackObj.url);
         currentAudio.play();
-    } else if(currentTrackObj.url && currentTrackObj.url.startsWith("http")) {
-        if(currentAudio) { currentAudio.pause(); currentAudio = null; }
-        currentAudio = new Audio(currentTrackObj.url);
-        currentAudio.play();
-    } else {
-        alert("❌ Нет аудио для воспроизведения. Добавьте MP3 файл через кнопку 'Выбрать MP3'");
-    }
+    } else { alert("❌ Нет аудио. Добавьте MP3 через кнопку 'Выбрать MP3'"); }
 }
-function pauseTrack() { 
-    if(currentAudio) currentAudio.pause(); 
-}
-function stopTrack() { 
-    if(currentAudio) { currentAudio.pause(); currentAudio = null; }
-    document.getElementById("nowPlaying").innerHTML = "🎵 Нет трека";
-}
+function pauseTrack() { if(currentAudio) currentAudio.pause(); }
+function stopTrack() { if(currentAudio) { currentAudio.pause(); currentAudio = null; } document.getElementById("nowPlaying").innerHTML = "🎵 Нет трека"; }
 function addTrackToCurrentFolder() {
     let name = document.getElementById("newTrackName").value.trim();
     if(!name) { alert("Введите название песни"); return; }
-    if(!currentFolder) { alert("Сначала выберите папку (нажмите на папку в списке)"); return; }
-    if(!selectedMP3File) { alert("Сначала выберите MP3 файл через кнопку 'Выбрать MP3'"); return; }
-    
+    if(!currentFolder) { alert("Сначала выберите папку"); return; }
+    if(!selectedMP3File) { alert("Сначала выберите MP3 файл"); return; }
     let url = URL.createObjectURL(selectedMP3File);
     playerFolders[currentFolder].push({ name: name, url: url });
     localStorage.setItem('playerFolders', JSON.stringify(playerFolders));
@@ -495,7 +492,7 @@ function addTrackToCurrentFolder() {
     document.getElementById("newTrackName").value = "";
     selectedMP3File = null;
     document.getElementById("mp3FileInput").value = "";
-    alert(`✅ Трек "${name}" добавлен в папку "${currentFolder}"!`);
+    alert(`✅ Трек "${name}" добавлен!`);
 }
 function deleteTrack(folder, index) {
     if(confirm(`Удалить трек "${playerFolders[folder][index].name}"?`)) {
@@ -526,10 +523,6 @@ function updateTime() {
     document.getElementById("localTime").innerHTML = now.toLocaleTimeString('ru-RU');
     document.getElementById("localDate").innerHTML = now.toLocaleDateString('ru-RU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     
-    fetch('https://ipapi.co/json/')
-        .then(res => res.json())
-        .catch(() => {});
-    
     let cities = [
         { name: "🇷🇺 Москва", offset: 3 },
         { name: "🇦🇿 Баку (Азербайджан)", offset: 4 },
@@ -555,6 +548,7 @@ function updateTime() {
             alarm.triggered = true;
             document.getElementById("alarmMessage").style.display = "flex";
             currentAlarm = alarm;
+            setTimeout(() => { document.getElementById("alarmMessage").style.display = "none"; }, 5000);
             break;
         }
     }
@@ -582,10 +576,7 @@ function refreshAlarmList() {
         listDiv.innerHTML += `<div class="alarm-item"><span>⏰ ${alarms[i].time}</span><button onclick="removeAlarm(${i})">🗑️</button></div>`;
     }
 }
-function stopAlarm() {
-    document.getElementById("alarmMessage").style.display = "none";
-    if(currentAlarm) currentAlarm.triggered = false;
-}
+function stopAlarm() { document.getElementById("alarmMessage").style.display = "none"; if(currentAlarm) currentAlarm.triggered = false; }
 setInterval(updateTime, 1000);
 updateTime();
 refreshAlarmList();
@@ -594,8 +585,8 @@ refreshAlarmList();
 let fileSystem = JSON.parse(localStorage.getItem('kpk_files')) || { "/": { type: "folder", children: ["system", "documents"], content: {} } };
 if(!fileSystem["/system"]) fileSystem["/system"] = { type: "folder", children: ["config.txt"], content: {} };
 if(!fileSystem["/documents"]) fileSystem["/documents"] = { type: "folder", children: ["readme.txt"], content: {} };
-if(!fileSystem["/system/config.txt"]) fileSystem["/system/config.txt"] = { type: "file", content: "system_version=2.0" };
-if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0!" };
+if(!fileSystem["/system/config.txt"]) fileSystem["/system/config.txt"] = { type: "file", content: "system_version=2.0\nhack_mode=enabled" };
+if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0 HACK EDITION!" };
 
 let currentPath = "/";
 function saveFileSystem() { localStorage.setItem('kpk_files', JSON.stringify(fileSystem)); }
@@ -687,14 +678,22 @@ function clearLinesTetris() { let linesCleared = 0; for(let y=0; y<20; y++) if(t
 function drawTetris() {
     tetrisCtx.fillStyle = "black"; tetrisCtx.fillRect(0,0,300,400);
     let cellSize = 20;
-    for(let y=0; y<20; y++) for(let x=0; x<10; x++) if(tetrisBoard[y][x]) { tetrisCtx.fillStyle = getComputedStyle(document.body).color; tetrisCtx.fillRect(x*cellSize, y*cellSize, cellSize-1, cellSize-1); }
-    for(let y=0; y<tetrisCurrentPiece.length; y++) for(let x=0; x<tetrisCurrentPiece[0].length; x++) if(tetrisCurrentPiece[y][x]) { tetrisCtx.fillStyle = getComputedStyle(document.body).color; tetrisCtx.fillRect((tetrisCurrentX+x)*cellSize, (tetrisCurrentY+y)*cellSize, cellSize-1, cellSize-1); }
+    let color = getComputedStyle(document.body).color;
+    for(let y=0; y<20; y++) for(let x=0; x<10; x++) if(tetrisBoard[y][x]) { tetrisCtx.fillStyle = color; tetrisCtx.fillRect(x*cellSize, y*cellSize, cellSize-1, cellSize-1); }
+    for(let y=0; y<tetrisCurrentPiece.length; y++) for(let x=0; x<tetrisCurrentPiece[0].length; x++) if(tetrisCurrentPiece[y][x]) { tetrisCtx.fillStyle = color; tetrisCtx.fillRect((tetrisCurrentX+x)*cellSize, (tetrisCurrentY+y)*cellSize, cellSize-1, cellSize-1); }
 }
 document.addEventListener("keydown", (e) => {
     if(tetrisLoop) {
         if(e.key === "ArrowLeft") { tetrisCurrentX--; if(collisionTetris()) tetrisCurrentX++; drawTetris(); }
         else if(e.key === "ArrowRight") { tetrisCurrentX++; if(collisionTetris()) tetrisCurrentX--; drawTetris(); }
         else if(e.key === "ArrowDown") { tetrisCurrentY++; if(collisionTetris()) tetrisCurrentY--; drawTetris(); }
+        else if(e.key === "ArrowUp") { 
+            let rotated = tetrisCurrentPiece[0].map((_,idx) => tetrisCurrentPiece.map(row => row[idx]).reverse());
+            let oldPiece = tetrisCurrentPiece;
+            tetrisCurrentPiece = rotated;
+            if(collisionTetris()) tetrisCurrentPiece = oldPiece;
+            else drawTetris();
+        }
     }
     if(snakeGameActive) {
         if(e.key === "ArrowUp" && snakeDir.y !== 1) snakeDir = {x:0, y:-1};
@@ -709,15 +708,16 @@ function browserGo() {
     let url = document.getElementById("browserUrl").value.trim().toLowerCase();
     let content = document.getElementById("browserContent");
     if(url === "" || url === "kpk://home") content.innerHTML = `<div style="padding:20px; text-align:center;">🌐 KPK BROWSER<br>📌 kpk://news | kpk://ipgen | kpk://scan</div>`;
-    else if(url === "kpk://news") content.innerHTML = `<div>🔥 НОВОСТИ: KPK V2.0 обновлена!</div>`;
+    else if(url === "kpk://news") content.innerHTML = `<div>🔥 НОВОСТИ: KPK V2.0 HACK EDITION!</div>`;
     else if(url === "kpk://ipgen") { let ips=[]; for(let i=0;i<20;i++) ips.push(`${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); content.innerHTML = `<div>🔍 IP:<br>${ips.join('<br>')}<button onclick="browserGoTo('kpk://ipgen')">🔄</button></div>`; }
-    else if(url === "kpk://scan") content.innerHTML = `<div>🔎 ПОРТЫ: 22🔓 80🔓 443🔓</div>`;
+    else if(url === "kpk://scan") content.innerHTML = `<div>🔎 ПОРТЫ: 22🔓 80🔓 443🔓 8080🔓</div>`;
     else content.innerHTML = `<div>❌ Страница не найдена</div>`;
 }
 function browserGoTo(url) { document.getElementById("browserUrl").value = url; browserGo(); }
 
-// ========== ТЕРМИНАЛ ==========
+// ========== ТЕРМИНАЛ С ХАК-КОМАНДАМИ ==========
 let cmdHistory = [], historyIndex = -1;
+
 function runCmd() {
     let input = document.getElementById("cmd");
     let raw = input.value.trim();
@@ -729,11 +729,72 @@ function runCmd() {
     term.innerHTML += `<div class="terminal-line">[${time}] ➜ ${escapeHtml(raw)}</div>`;
     let output = "";
     
-    if(cmd === "help") output = `КОМАНДЫ: help, system, battery, clear, reboot, files, browser, editor, paint, player, alarm, snake, tetris, genpass, weather, iplist`;
-    else if(cmd === "system") output = `🖥️ KPK V2.0\n🔋 ${Math.floor(batteryLevel)}%\n🌐 ${net?"ON":"OFF"}`;
-    else if(cmd === "battery") output = `🔋 Заряд: ${Math.floor(batteryLevel)}%`;
+    // ========== ХАК-КОМАНДЫ ==========
+    if(cmd.startsWith("ddos ")) {
+        let target = cmd.substring(5);
+        let packets = Math.floor(Math.random() * 50000 + 10000);
+        let mbps = Math.floor(Math.random() * 500 + 100);
+        output = `💣 DDOS АТАКА НА ${target}\n━━━━━━━━━━━━━━━━━━━━━━━\n[+] Отправлено пакетов: ${packets}\n[+] Нагрузка: ${mbps} MB/s\n[+] Статус: ${Math.random() > 0.3 ? 'Атака успешна' : 'Цель защищена'}\n⚠️ [ДЕМО РЕЖИМ]`;
+    }
+    else if(cmd === "exploit") {
+        let exploits = ["CVE-2024-1234: Уязвимость в SSH (критическая)", "CVE-2024-5678: DoS в ядре", "CVE-2023-9876: Переполнение буфера в HTTP"];
+        output = `🔨 ПОИСК ЭКСПЛОЙТОВ\n━━━━━━━━━━━━━━━━━━━━━━━\n[+] ${exploits[Math.floor(Math.random()*exploits.length)]}\n${Math.random() > 0.5 ? '[!] Эксплойт доступен для скачивания' : '[!] Патч уже выпущен'}`;
+    }
+    else if(cmd.startsWith("traceroute ")) {
+        let target = cmd.substring(11);
+        let hops = [];
+        for(let i = 1; i <= Math.floor(Math.random() * 12 + 5); i++) {
+            let ip = `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+            hops.push(`${i.toString().padStart(2)}  ${ip.padEnd(18)} ${Math.floor(Math.random()*100+5)}ms`);
+        }
+        output = `📍 TRACEROUTE до ${target}\n━━━━━━━━━━━━━━━━━━━━━━━\n${hops.join('\n')}\n✅ Трассировка завершена`;
+    }
+    else if(cmd.startsWith("whois ")) {
+        let target = cmd.substring(6);
+        let countries = ["RU", "US", "DE", "CN", "GB", "FR", "JP", "BR", "AZ"];
+        let providers = ["KPK Networks", "CloudFlare", "AWS", "Google", "Microsoft"];
+        output = `📋 WHOIS ${target}\n━━━━━━━━━━━━━━━━━━━━━━━\nСтрана: ${countries[Math.floor(Math.random()*countries.length)]}\nПровайдер: ${providers[Math.floor(Math.random()*providers.length)]}\nСтатус: Активен`;
+    }
+    else if(cmd === "hacktools") {
+        output = `🛠️ HACK TOOLS (KPK EDITION)\n━━━━━━━━━━━━━━━━━━━━━━━\n• Nmap v7.95 - сканер портов\n• Hydra v9.5 - брутфорс паролей\n• Metasploit v6.4 - фреймворк эксплойтов\n• Wireshark v4.2 - анализ трафика\n• John the Ripper - взлом хешей`;
+    }
+    else if(cmd === "keylogger") {
+        output = `⌨️ KEYLOGGER АКТИВИРОВАН [ДЕМО]\n━━━━━━━━━━━━━━━━━━━━━━━\n[!] Отслеживание нажатий...\n[!] Собрано данных: ${Math.floor(Math.random()*50)} KB\n⚠️ Демонстрационный режим, данные не сохраняются`;
+    }
+    else if(cmd === "sniffer") {
+        output = `📡 АНАЛИЗ ТРАФИКА (SNIFFER)\n━━━━━━━━━━━━━━━━━━━━━━━\n[+] Пакетов перехвачено: ${Math.floor(Math.random()*1000)}\n[+] Протоколы: TCP(45%), UDP(30%), ICMP(25%)\n[+] Подозрительная активность: ${Math.random() > 0.7 ? 'Обнаружена' : 'Не обнаружена'}`;
+    }
+    else if(cmd === "backdoor") {
+        output = `🚪 BACKDOOR УСТАНОВЛЕН [ДЕМО]\n━━━━━━━━━━━━━━━━━━━━━━━\n[+] Порт: ${Math.floor(Math.random()*60000+1024)}\n[+] Протокол: ${Math.random() > 0.5 ? 'TCP' : 'UDP'}\n[+] Удалённый доступ: активирован\n⚠️ Демонстрационный режим`;
+    }
+    else if(cmd === "hack") {
+        output = `🔥 HACK MODULE V2.0 🔥\n━━━━━━━━━━━━━━━━━━━━━━━\n📌 Доступные команды:\n  ddos <IP>     - DDoS атака\n  exploit       - Поиск уязвимостей\n  traceroute    - Трассировка маршрута\n  whois <IP>    - Информация об IP\n  hacktools     - Список инструментов\n  keylogger     - Клавиатурный шпион\n  sniffer       - Анализ трафика\n  backdoor      - Установка бэкдора`;
+    }
+    // ========== ОБЫЧНЫЕ КОМАНДЫ ==========
+    else if(cmd === "help") {
+        output = `КОМАНДЫ KPK V2.0 | HACK EDITION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔥 ХАК-КОМАНДЫ:
+  ddos <IP>     - DDoS атака
+  exploit       - Поиск уязвимостей  
+  traceroute    - Трассировка маршрута
+  whois <IP>    - Информация об IP
+  hacktools     - Список хак-инструментов
+  keylogger     - Клавиатурный шпион
+  sniffer       - Анализ трафика
+  backdoor      - Установка бэкдора
+  hack          - Справка по хаку
+
+📁 ФАЙЛЫ: files, ls, cd, mkdir, pwd, find, edit
+🎮 ИГРЫ: snake, tetris
+🔧 СИСТЕМА: calc, genpass, weather, myip, system, battery
+🌐 СЕТЬ: iplist, scanip, ports, net on/off, ping
+💻 ДРУГИЕ: paint, player, alarm, browser, editor, notes, clear, reboot, history`;
+    }
+    else if(cmd === "system") { output = `🖥️ KPK V2.0 | HACK EDITION\n🔋 Батарея: ${Math.floor(batteryLevel)}%\n🌐 Сеть: ${net?"ВКЛ":"ВЫКЛ"}\n🔥 Хак-модуль: Активен`; }
+    else if(cmd === "battery") { output = `🔋 Заряд: ${Math.floor(batteryLevel)}% | Авторазряд: ${autoDischarge?"ВКЛ":"ВЫКЛ"}`; }
     else if(cmd === "clear") { term.innerHTML = ""; input.value = ""; return; }
-    else if(cmd === "reboot") { output = "Перезагрузка..."; setTimeout(() => reboot(), 1000); }
+    else if(cmd === "reboot") { output = "⚠️ ПЕРЕЗАГРУЗКА..."; setTimeout(() => reboot(), 1000); }
     else if(cmd === "files") { openApp('files'); output = "📁 Файлы открыты"; }
     else if(cmd === "browser") { openApp('browser'); output = "🌐 Браузер открыт"; }
     else if(cmd === "editor") { openApp('editor'); output = "✏️ Редактор открыт"; }
@@ -742,10 +803,25 @@ function runCmd() {
     else if(cmd === "alarm") { openApp('alarm'); output = "⏰ Часы открыты"; }
     else if(cmd === "snake") { openApp('games'); setTimeout(() => startSnakeGame(), 100); output = "🐍 Змейка запущена!"; }
     else if(cmd === "tetris") { openApp('games'); setTimeout(() => startTetrisGame(), 100); output = "🧩 Тетрис запущен!"; }
-    else if(cmd === "genpass") { let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%", pass=""; for(let i=0;i<12;i++) pass+=chars[Math.floor(Math.random()*chars.length)]; output = `🔐 Пароль: ${pass}`; }
-    else if(cmd === "weather") { output = `🌤️ Погода: ${Math.floor(Math.random()*30-10)}°C, ветер ${Math.floor(Math.random()*15)} м/с`; }
-    else if(cmd === "iplist") { let ips=[]; for(let i=0;i<10;i++) ips.push(`${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); output = `🌍 IP:\n${ips.join('\n')}`; }
-    else output = `❌ Неизвестно: ${raw}. Введите help`;
+    else if(cmd === "genpass") { let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*", pass=""; for(let i=0;i<12;i++) pass+=chars[Math.floor(Math.random()*chars.length)]; output = `🔐 Пароль: ${pass}`; }
+    else if(cmd === "weather") { let temp = Math.floor(Math.random()*30 - 10); output = `🌤️ Погода: ${temp}°C, ветер ${Math.floor(Math.random()*15)} м/с, влажность ${Math.floor(Math.random()*50+30)}%`; }
+    else if(cmd === "myip") { let ip = `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`; output = `🌐 Ваш IP: ${ip}`; }
+    else if(cmd === "iplist") { let ips=[]; for(let i=0;i<30;i++) ips.push(`${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); output = `🌍 IP АДРЕСА (30 шт):\n${ips.join('\n')}`; }
+    else if(cmd === "scanip") { output = `🔍 СКАНИРОВАНИЕ: порты 22,80,443 открыты\nВремя: ${Math.floor(Math.random()*300+50)}ms`; }
+    else if(cmd === "ports") { output = "🔌 ПОРТЫ (localhost):\n22(SSH) 🔓 | 80(HTTP) 🔓 | 443(HTTPS) 🔓 | 3306(MySQL) 🔒 | 8080(Proxy) 🔓"; }
+    else if(cmd === "net on") { if(!net) toggleNet(); output = "🌐 Сеть включена"; }
+    else if(cmd === "net off") { if(net) toggleNet(); output = "🌐 Сеть отключена"; }
+    else if(cmd === "history") { output = cmdHistory.length ? `📜 История (последние 10):\n${cmdHistory.slice(-10).join('\n')}` : "История пуста"; }
+    else if(cmd === "ls") { let cur = fileSystem[currentPath]; if(cur && cur.children) output = `📁 ${cur.children.join(', ') || '(пусто)'}`; else output = "❌ Ошибка"; }
+    else if(cmd.startsWith("cd ")) {
+        let dir = cmd.substring(3);
+        if(dir === "/") { currentPath = "/"; refreshFileList(); output = "📁 Корень"; }
+        else if(dir === "..") { navigateTo(".."); output = "📁 Наверх"; }
+        else { let newPath = currentPath === "/" ? "/" + dir : currentPath + "/" + dir; if(fileSystem[newPath] && fileSystem[newPath].type === "folder") { currentPath = newPath; refreshFileList(); output = `📁 Переход в ${dir}`; } else output = `❌ Папка "${dir}" не найдена`; }
+    }
+    else if(cmd.startsWith("mkdir ")) { let name = cmd.substring(6); if(name) { createFolder(name); refreshFileList(); output = `📁 Папка "${name}" создана`; } else output = "❌ Укажите имя"; }
+    else if(cmd === "pwd") { output = `📂 ${currentPath}`; }
+    else { output = `❌ Неизвестно: ${raw}\nВведите 'help' для списка команд`; }
     
     if(output) term.innerHTML += `<div class="terminal-line">${output.replace(/\n/g, '<br>')}</div>`;
     term.scrollTop = term.scrollHeight;
@@ -753,50 +829,94 @@ function runCmd() {
 }
 function escapeHtml(str) { return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
 document.getElementById("cmd")?.addEventListener("keypress", (e) => { if(e.key === "Enter") runCmd(); });
+document.getElementById("cmd")?.addEventListener("keydown", (e) => {
+    if(e.key === "ArrowUp") { if(historyIndex > 0) { historyIndex--; document.getElementById("cmd").value = cmdHistory[historyIndex]; } }
+    else if(e.key === "ArrowDown") { if(historyIndex < cmdHistory.length-1) { historyIndex++; document.getElementById("cmd").value = cmdHistory[historyIndex]; } else { historyIndex = cmdHistory.length; document.getElementById("cmd").value = ""; } }
+});
 
+// ========== ТЕМЫ ==========
 function setTheme(theme) { document.body.className = `theme-${theme}`; localStorage.setItem('kpk_theme', theme); if(tetrisLoop) drawTetris(); }
 function clearStorage() { if(confirm("Очистить все данные? Файлы, заметки, плейлисты, будильники будут удалены!")) { localStorage.clear(); location.reload(); } }
 let savedTheme = localStorage.getItem('kpk_theme'); if(savedTheme) setTheme(savedTheme);
 function saveNotes() { localStorage.setItem('kpk_notes', document.getElementById("notesArea").value); alert("💾 Заметки сохранены!"); }
 function loadNotes() { let saved = localStorage.getItem('kpk_notes'); if(saved) document.getElementById("notesArea").value = saved; }
 
+// ========== DRAG & DROP (ИСПРАВЛЕННЫЙ) ==========
 function makeDraggable(win) {
     let header = win.querySelector("header");
     if(!header) return;
-    let closeBtn = header.querySelector(".close-btn"), minimizeBtn = header.querySelector(".minimize-btn");
-    let isDragging = false, startX, startY, left, top;
-    function getCoords(e) { return { x: e.clientX ?? (e.touches?.[0]?.clientX ?? 0), y: e.clientY ?? (e.touches?.[0]?.clientY ?? 0) }; }
+    
+    let closeBtn = header.querySelector(".close-btn");
+    let minimizeBtn = header.querySelector(".minimize-btn");
+    
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+    
+    function getCoords(e) {
+        if (e.clientX !== undefined) return { x: e.clientX, y: e.clientY };
+        if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        return { x: 0, y: 0 };
+    }
+    
     function onStart(e) {
-        if((closeBtn && (e.target === closeBtn || closeBtn.contains(e.target))) || (minimizeBtn && (e.target === minimizeBtn || minimizeBtn.contains(e.target)))) return;
+        if (closeBtn && (e.target === closeBtn || closeBtn.contains(e.target))) return;
+        if (minimizeBtn && (e.target === minimizeBtn || minimizeBtn.contains(e.target))) return;
+        
         e.preventDefault();
+        e.stopPropagation();
+        
         isDragging = true;
+        
         let rect = win.getBoundingClientRect();
         let coords = getCoords(e);
+        
         startX = coords.x - rect.left;
         startY = coords.y - rect.top;
-        left = rect.left; top = rect.top;
-        win.style.left = left + "px"; win.style.top = top + "px";
+        startLeft = rect.left;
+        startTop = rect.top;
+        
+        win.style.left = startLeft + "px";
+        win.style.top = startTop + "px";
+        win.style.right = "auto";
+        win.style.bottom = "auto";
+        win.style.position = "absolute";
+        
+        win.classList.add("dragging");
     }
+    
     function onMove(e) {
-        if(!isDragging) return;
+        if (!isDragging) return;
+        
         e.preventDefault();
+        
         let coords = getCoords(e);
         let newLeft = coords.x - startX;
         let newTop = coords.y - startY;
-        newLeft = Math.min(Math.max(0, newLeft), window.innerWidth - win.offsetWidth);
-        newTop = Math.min(Math.max(20, newTop), window.innerHeight - win.offsetHeight);
-        win.style.left = newLeft + "px"; win.style.top = newTop + "px";
+        
+        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - win.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, window.innerHeight - win.offsetHeight));
+        
+        win.style.left = newLeft + "px";
+        win.style.top = newTop + "px";
     }
-    function onEnd() { isDragging = false; }
+    
+    function onEnd() {
+        isDragging = false;
+        win.classList.remove("dragging");
+    }
+    
     header.addEventListener("mousedown", onStart);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onEnd);
-    header.addEventListener("touchstart", onStart, {passive: false});
-    window.addEventListener("touchmove", onMove, {passive: false});
+    
+    header.addEventListener("touchstart", onStart, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
     window.addEventListener("touchend", onEnd);
 }
+
 document.querySelectorAll(".window").forEach(makeDraggable);
 
+// ========== ПЕРЕЗАГРУЗКА ==========
 function reboot() {
     document.getElementById("shutdown").style.display = "none";
     let boot = document.getElementById("bootScreen"), percent = 0;
@@ -811,14 +931,17 @@ function reboot() {
 }
 window.reboot = reboot;
 
+// ========== ЗАПУСК ==========
 window.addEventListener("load", () => {
     if(batteryLevel <= 0) document.getElementById("shutdown").style.display = "flex";
     refreshFileList();
     loadNotes();
     initPaint();
     let term = document.getElementById("terminal");
-    if(term) term.innerHTML = `<div class="terminal-line">[SYSTEM] KPK V2.0 загружена</div>
-<div class="terminal-line">[SYSTEM] Введите help для справки</div>`;
+    if(term) term.innerHTML = `<div class="terminal-line">[SYSTEM] KPK V2.0 HACK EDITION загружена</div>
+<div class="terminal-line">[SYSTEM] 🔥 ДОСТУПНЫ ХАК-КОМАНДЫ: ddos, exploit, traceroute, whois, hacktools, keylogger, sniffer, backdoor</div>
+<div class="terminal-line">[SYSTEM] 🎮 ИГРЫ: snake, tetris</div>
+<div class="terminal-line">[SYSTEM] Введите 'help' для полного списка, 'hack' для хак-команд</div>`;
     document.querySelectorAll(".window").forEach((win, idx) => { win.style.left = (20 + idx * 25) + "px"; win.style.top = (70 + idx * 15) + "px"; });
     refreshPlayer();
 });
@@ -855,6 +978,7 @@ window.selectMP3File = selectMP3File;
 window.addAlarm = addAlarm;
 window.removeAlarm = removeAlarm;
 window.stopAlarm = stopAlarm;
+window.runCmd = runCmd;
 </script>
 </body>
 </html>
