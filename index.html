@@ -930,6 +930,134 @@ function reboot() {
     }, 100);
 }
 window.reboot = reboot;
+    // ========== ФУНКЦИЯ, КОТОРАЯ НЕ ДАЁТ ОКНУ ВЫХОДИТЬ ЗА ЭКРАН ==========
+function fitWindowToScreen(win) {
+    let rect = win.getBoundingClientRect();
+    let maxX = window.innerWidth - rect.width;
+    let maxY = window.innerHeight - rect.height;
+    
+    let newLeft = rect.left;
+    let newTop = rect.top;
+    
+    if (rect.left < 0) newLeft = 10;
+    if (rect.top < 0) newTop = 60;
+    if (rect.left > maxX) newLeft = maxX - 10;
+    if (rect.top > maxY) newTop = maxY - 10;
+    
+    if (newLeft !== rect.left || newTop !== rect.top) {
+        win.style.left = newLeft + "px";
+        win.style.top = newTop + "px";
+        win.style.right = "auto";
+        win.style.bottom = "auto";
+    }
+}
+
+// ========== ОТКРЫТИЕ ОКНА (С ПРОВЕРКОЙ ГРАНИЦ) ==========
+function openApp(id) { 
+    if(batteryLevel <= 0) return;
+    let win = document.getElementById(id);
+    if(win) {
+        win.style.display = "flex";
+        win.style.zIndex = 1000 + Date.now() % 1000;
+        
+        // Если у окна нет явно заданных координат, ставим по умолчанию
+        if (!win.style.left || win.style.left === "") {
+            win.style.left = "20px";
+            win.style.top = "60px";
+        }
+        
+        // Проверяем, не выходит ли окно за экран
+        setTimeout(() => fitWindowToScreen(win), 10);
+    }
+}
+
+// ========== DRAG & DROP (С УЛУЧШЕННЫМИ ГРАНИЦАМИ) ==========
+function makeDraggable(win) {
+    let header = win.querySelector("header");
+    if(!header) return;
+    
+    let closeBtn = header.querySelector(".close-btn");
+    let minimizeBtn = header.querySelector(".minimize-btn");
+    
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+    
+    function getCoords(e) {
+        if (e.clientX !== undefined) return { x: e.clientX, y: e.clientY };
+        if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        return { x: 0, y: 0 };
+    }
+    
+    function onStart(e) {
+        if (closeBtn && (e.target === closeBtn || closeBtn.contains(e.target))) return;
+        if (minimizeBtn && (e.target === minimizeBtn || minimizeBtn.contains(e.target))) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        isDragging = true;
+        
+        let rect = win.getBoundingClientRect();
+        let coords = getCoords(e);
+        
+        startX = coords.x - rect.left;
+        startY = coords.y - rect.top;
+        startLeft = rect.left;
+        startTop = rect.top;
+        
+        win.style.left = startLeft + "px";
+        win.style.top = startTop + "px";
+        win.style.right = "auto";
+        win.style.bottom = "auto";
+        
+        win.classList.add("dragging");
+    }
+    
+    function onMove(e) {
+        if (!isDragging) return;
+        
+        e.preventDefault();
+        
+        let coords = getCoords(e);
+        let newLeft = coords.x - startX;
+        let newTop = coords.y - startY;
+        
+        // ЖЁСТКИЕ ГРАНИЦЫ — окно НИКОГДА не выйдет за экран
+        let maxX = window.innerWidth - win.offsetWidth;
+        let maxY = window.innerHeight - win.offsetHeight;
+        
+        newLeft = Math.max(5, Math.min(newLeft, maxX - 5));
+        newTop = Math.max(50, Math.min(newTop, maxY - 10));
+        
+        win.style.left = newLeft + "px";
+        win.style.top = newTop + "px";
+    }
+    
+    function onEnd() {
+        isDragging = false;
+        win.classList.remove("dragging");
+    }
+    
+    header.addEventListener("mousedown", onStart);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onEnd);
+    
+    header.addEventListener("touchstart", onStart, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onEnd);
+}
+
+// Применяем ко всем окнам
+document.querySelectorAll(".window").forEach(makeDraggable);
+
+// При изменении размера окна браузера — подтягиваем все окна в видимую зону
+window.addEventListener("resize", () => {
+    document.querySelectorAll(".window").forEach(win => {
+        if (win.style.display === "flex") {
+            fitWindowToScreen(win);
+        }
+    });
+});
 
 // ========== ЗАПУСК ==========
 window.addEventListener("load", () => {
