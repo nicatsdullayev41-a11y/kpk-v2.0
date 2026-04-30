@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>KPK V2.0</title>
+    <title>KPK V2.0 | AI ASSISTANT</title>
     <style>
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: 'Courier New', monospace; background: #000; color: #0f0; overflow: hidden; height: 100vh; }
@@ -12,6 +12,11 @@
             0%, 100% { text-shadow: 0 0 3px currentColor, 0 0 5px currentColor, 0 0 10px currentColor; }
             50% { text-shadow: 0 0 1px currentColor, 0 0 3px currentColor, 0 0 6px currentColor; }
         }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
         #topbar, .window header, .app, button, .terminal-line, #lockTime, #lockDate {
             animation: neonGlow 1.5s ease-in-out infinite;
         }
@@ -92,8 +97,8 @@
         
         .window {
             position: absolute;
-            width: 420px;
-            height: 540px;
+            width: 450px;
+            height: 560px;
             background: #000;
             display: none;
             flex-direction: column;
@@ -114,9 +119,52 @@
             cursor: pointer;
         }
         
+        /* AI стили */
+        .ai-chat {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .ai-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        .ai-message {
+            margin: 8px 0;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        .ai-message.user {
+            background: #0a2a0a;
+            border: 1px solid #0f0;
+            margin-left: auto;
+            text-align: right;
+        }
+        .ai-message.bot {
+            background: #0a0a2a;
+            border: 1px solid #0af;
+            margin-right: auto;
+        }
+        .ai-typing {
+            color: #888;
+            font-style: italic;
+            animation: blink 1s infinite;
+        }
+        .ai-input-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .ai-input-area input {
+            flex: 1;
+        }
+        
         .paint-tools { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
         #paintCanvas { border: 1px solid #0f0; cursor: crosshair; background: #fff; width: 100%; height: 400px; }
-        .color-picker { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 1px solid #fff; }
         
         .player-folder, .player-track {
             background: #0a0a0a;
@@ -205,10 +253,11 @@
 
 <div id="lockScreen"><div id="lockTime"></div><div id="lockDate"></div><button onclick="unlock()">🔓 РАЗБЛОКИРОВАТЬ</button></div>
 
-<div id="topbar"><div>⚡ KPK V2.0</div><div><span id="clock"></span> <span id="battery">🔋 100%</span></div></div>
+<div id="topbar"><div>⚡ KPK V2.0 | AI ASSISTANT</div><div><span id="clock"></span> <span id="battery">🔋 100%</span></div></div>
 <div class="battery-widget" id="batteryWidget" onclick="openApp('battery')">🔋 100%</div>
 
 <div id="apps">
+    <div class="app" onclick="openApp('ai')">🤖 AI</div>
     <div class="app" onclick="openApp('paint')">🎨 PAINT</div>
     <div class="app" onclick="openApp('player')">🎵 ПЛЕЕР</div>
     <div class="app" onclick="openApp('alarm')">⏰ ЧАСЫ</div>
@@ -223,6 +272,18 @@
     <div class="app" onclick="openApp('battery')">🔋 БАТАРЕЯ</div>
     <div class="app" onclick="openApp('settings')">⚙️ НАСТРОЙКИ</div>
 </div>
+
+<!-- AI АССИСТЕНТ -->
+<div id="ai" class="window"><header>🤖 AI АССИСТЕНТ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('ai')">_</button><button class="close-btn" onclick="closeApp('ai')">✖</button></div></header>
+<div class="content ai-chat">
+    <div class="ai-messages" id="aiMessages">
+        <div class="ai-message bot"><strong>🤖 KPK AI:</strong> Привет! Я твой ИИ-ассистент. Задавай любые вопросы — помогу с командами, подскажу по системе, напишу код, объясню что угодно. Чем могу помочь?</div>
+    </div>
+    <div class="ai-input-area">
+        <input type="text" id="aiInput" placeholder="Спроси меня о чём угодно..." onkeypress="if(event.key==='Enter') askAI()">
+        <button onclick="askAI()">📤</button>
+    </div>
+</div></div>
 
 <!-- PAINT -->
 <div id="paint" class="window"><header>🎨 PAINT <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('paint')">_</button><button class="close-btn" onclick="closeApp('paint')">✖</button></div></header>
@@ -270,7 +331,7 @@
 
 <!-- ТЕРМИНАЛ -->
 <div id="hack" class="window"><header>💻 ТЕРМИНАЛ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('hack')">_</button><button class="close-btn" onclick="closeApp('hack')">✖</button></div></header>
-<div class="content" id="terminal" style="height:340px; overflow-y:auto; font-size:12px;"></div><div style="display:flex; gap:6px; padding:8px;"><span>➜</span><input id="cmd" style="flex:1;" placeholder="help | ddos 1.2.3.4 | exploit"><button onclick="runCmd()">⏎</button></div></div>
+<div class="content" id="terminal" style="height:340px; overflow-y:auto; font-size:12px;"></div><div style="display:flex; gap:6px; padding:8px;"><span>➜</span><input id="cmd" style="flex:1;" placeholder="help | ask ИИ... | ddos 1.2.3.4"><button onclick="runCmd()">⏎</button></div></div>
 
 <!-- НАСТРОЙКИ -->
 <div id="settings" class="window"><header>⚙️ НАСТРОЙКИ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('settings')">_</button><button class="close-btn" onclick="closeApp('settings')">✖</button></div></header>
@@ -328,6 +389,85 @@ let net = false;
 function toggleNet() { net = !net; document.getElementById("wifi").innerText = net ? "📶 WiFi: ON" : "📶 WiFi: OFF"; document.getElementById("netStatus").innerHTML = net ? "🟢 ONLINE" : "🔴 OFFLINE"; }
 function simulatePing() { if(net) alert("🏓 Пинг: "+(Math.floor(Math.random()*80+20))+"ms"); else alert("Сеть отключена"); }
 function showMyIP() { document.getElementById("myIpDisplay").innerHTML = "🌐 Ваш IP: " + Math.floor(Math.random()*255)+"."+Math.floor(Math.random()*255)+"."+Math.floor(Math.random()*255)+"."+Math.floor(Math.random()*255); }
+
+// ========== AI АССИСТЕНТ ==========
+function askAI() {
+    let input = document.getElementById("aiInput");
+    let question = input.value.trim();
+    if(!question) return;
+    
+    let messagesDiv = document.getElementById("aiMessages");
+    messagesDiv.innerHTML += `<div class="ai-message user"><strong>👤 ВЫ:</strong> ${escapeHtml(question)}</div>`;
+    input.value = "";
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> <span class="ai-typing">Думаю...</span></div>`;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    setTimeout(() => {
+        let lastMsg = messagesDiv.querySelectorAll(".ai-message.bot:last-child");
+        if(lastMsg.length) lastMsg[lastMsg.length-1].remove();
+        
+        let answer = getAIAnswer(question);
+        messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> ${answer}</div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }, 500 + Math.random() * 500);
+}
+
+function getAIAnswer(question) {
+    let q = question.toLowerCase();
+    
+    if(q.match(/привет|здравствуй|hello|hi|ку|салам/i)) {
+        return "Привет! 👋 Я KPK AI — твой виртуальный помощник. Задавай любые вопросы по системе, программированию, или просто поболтаем! Чем могу помочь?";
+    }
+    if(q.match(/команды|помощь|help|что умеешь|функции/i)) {
+        return "📋 <strong>Мои возможности:</strong><br>• Отвечаю на любые вопросы<br>• Помогаю с командами терминала<br>• Пишу код (HTML, CSS, JS)<br>• Объясняю как работают приложения<br>• Подсказываю по Paint, Плееру, Часам<br>• Могу пошутить<br><br>💡 <strong>Команды терминала:</strong> help, system, battery, ddos, exploit, files, paint, player, alarm, snake, tetris, genpass, weather, iplist, scanip и другие!";
+    }
+    if(q.match(/ddos|атака|атаковать/i)) {
+        return "💣 <strong>DDoS атака (демо-режим):</strong><br>В терминале используй команду: <code>ddos 192.168.1.1</code><br>⚠️ Это симуляция, для образовательных целей! Никаких реальных атак не происходит.";
+    }
+    if(q.match(/paint|рисование|рисовать|draw/i)) {
+        return "🎨 <strong>Paint — редактор для рисования:</strong><br>• Выбирай цвета сверху<br>• Рисуй мышкой или пальцем<br>• Кнопка 'Оч' очищает всё<br>• Кнопка 'Сохр' сохраняет рисунок в PNG";
+    }
+    if(q.match(/плеер|player|музыка|песни|mp3/i)) {
+        return "🎵 <strong>Музыкальный плеер:</strong><br>1. Создай папку<br>2. Выбери папку<br>3. Нажми 'Выбрать MP3' и выбери файл<br>4. Введи название и нажми 'Добавить'<br>5. Нажми на трек и ▶ PLAY";
+    }
+    if(q.match(/часы|время|будильник|alarm/i)) {
+        return "⏰ <strong>Часы и будильник:</strong><br>• Показывает твоё локальное время<br>• Мировые часы (Москва, Баку, Нью-Йорк, Лондон, Токио)<br>• Чтобы установить будильник — выбери время и нажми 'Установить'";
+    }
+    if(q.match(/игры|game|snake|змейка|tetris|тетрис/i)) {
+        return "🎮 <strong>Аркады KPK:</strong><br>• 🐍 Змейка — управляй стрелками, ешь красные точки<br>• 🧩 Тетрис — стрелки ←→↓ двигают фигуру, ↑ вращает<br><br>Команды: <code>snake</code> или <code>tetris</code>";
+    }
+    if(q.match(/терминал|команды терминал/i)) {
+        return "💻 <strong>Команды терминала:</strong><br>• <code>help</code> — список всех команд<br>• <code>system</code> — информация о системе<br>• <code>battery</code> — уровень заряда<br>• <code>ddos 1.2.3.4</code> — DDoS атака (демо)<br>• <code>exploit</code> — поиск уязвимостей<br>• <code>traceroute google.com</code> — трассировка<br>• <code>whois 8.8.8.8</code> — инфо об IP<br>• <code>genpass</code> — генератор паролей<br>• <code>weather</code> — погода (демо)<br>• <code>iplist</code> — список IP<br>• <code>files</code>, <code>paint</code>, <code>player</code>, <code>alarm</code> — открыть приложения<br>• <code>clear</code> — очистить экран<br>• <code>reboot</code> — перезагрузка";
+    }
+    if(q.match(/код|программирование|html|css|javascript|js|напиши код/i)) {
+        if(q.match(/html/i)) return "📄 <strong>HTML код:</strong><br><code>&lt;!DOCTYPE html&gt;<br>&lt;html&gt;<br>&lt;head&gt;&lt;title&gt;Моя страница&lt;/title&gt;&lt;/head&gt;<br>&lt;body&gt;<br>  &lt;h1&gt;Привет, KPK!&lt;/h1&gt;<br>&lt;/body&gt;<br>&lt;/html&gt;</code>";
+        if(q.match(/css/i)) return "🎨 <strong>CSS стили:</strong><br><code>body { background: #000; color: #0f0; font-family: monospace; }<br>.glow { text-shadow: 0 0 10px lime; }</code>";
+        if(q.match(/javascript|js/i)) return "⚡ <strong>JavaScript код:</strong><br><code>console.log('Hello KPK!');<br>function greet(name) { return `Привет, ${name}!`; }</code>";
+        return "💻 Напиши конкретнее: HTML, CSS, JavaScript — что нужно?";
+    }
+    if(q.match(/kpk|система|версия/i)) {
+        return "🖥️ <strong>KPK V2.0 — информация:</strong><br>• Версия: 2.0 (AI Assistant Edition)<br>• Приложений: 13<br>• Хак-команд: 8<br>• Игр: 2 (Змейка, Тетрис)<br>• Особенности: Неоновое свечение, Drag&Drop окон, автосохранение, ИИ-помощник";
+    }
+    if(q.match(/шутка|смешное|пошути|joke/i)) {
+        let jokes = ["Почему программисты не любят природу? Слишком много багов! 🐜","Сколько программистов нужно, чтобы заменить лампочку? Ни одного — это аппаратная проблема! 💡","Чем отличается хакер от обычного пользователя? Хакер знает, что Ctrl+C и Ctrl+V спасают жизнь! ⌨️","KPK — это Как Программировать Круто! 😎"];
+        return jokes[Math.floor(Math.random() * jokes.length)];
+    }
+    if(q.match(/как дела|как жизнь|how are you/i)) {
+        return "У меня всё отлично! 🔋 Батарея на 100%, неоновый свет горит, ИИ работает. А у тебя?";
+    }
+    if(q.match(/спасибо|thanks/i)) {
+        return "Пожалуйста! Всегда рад помочь 🤝 Обращайся, если что-то нужно!";
+    }
+    if(q.match(/кто ты|ты кто/i)) {
+        return "🤖 Я — KPK AI, твой виртуальный ассистент! Встроен прямо в систему KPK V2.0. Умею отвечать на вопросы, помогать с командами, писать код и даже шутить.";
+    }
+    
+    return "📡 Интересный вопрос! 🤔\n\n✨ Я ещё не знаю точного ответа на это. Но могу помочь с командами KPK, подсказать про Paint, Плеер, Часы, Терминал или написать код. Уточни вопрос?\n\n💡 Либо спроси про команды (help), либо задай другой вопрос!";
+}
+
+function escapeHtml(str) { return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
 
 // ========== PAINT ==========
 let paintCanvas, paintCtx, paintColor = "#0f0";
@@ -446,14 +586,10 @@ function updateTime() {
     document.getElementById("localTime").innerHTML = now.toLocaleTimeString('ru-RU');
     document.getElementById("localDate").innerHTML = now.toLocaleDateString('ru-RU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     let cities = [
-        { name: "🇷🇺 Москва", offset: 3 },
-        { name: "🇦🇿 Баку", offset: 4 },
-        { name: "🇺🇸 Нью-Йорк", offset: -4 },
-        { name: "🇬🇧 Лондон", offset: 0 },
-        { name: "🇯🇵 Токио", offset: 9 },
-        { name: "🇦🇪 Дубай", offset: 4 },
-        { name: "🇨🇳 Пекин", offset: 8 },
-        { name: "🇩🇪 Берлин", offset: 1 }
+        { name: "🇷🇺 Москва", offset: 3 }, { name: "🇦🇿 Баку", offset: 4 },
+        { name: "🇺🇸 Нью-Йорк", offset: -4 }, { name: "🇬🇧 Лондон", offset: 0 },
+        { name: "🇯🇵 Токио", offset: 9 }, { name: "🇦🇪 Дубай", offset: 4 },
+        { name: "🇨🇳 Пекин", offset: 8 }, { name: "🇩🇪 Берлин", offset: 1 }
     ];
     let worldHtml = "";
     for(let city of cities) {
@@ -503,8 +639,8 @@ refreshAlarmList();
 let fileSystem = JSON.parse(localStorage.getItem('kpk_files')) || { "/": { type: "folder", children: ["system", "documents"], content: {} } };
 if(!fileSystem["/system"]) fileSystem["/system"] = { type: "folder", children: ["config.txt"], content: {} };
 if(!fileSystem["/documents"]) fileSystem["/documents"] = { type: "folder", children: ["readme.txt"], content: {} };
-if(!fileSystem["/system/config.txt"]) fileSystem["/system/config.txt"] = { type: "file", content: "system_version=2.0" };
-if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0!" };
+if(!fileSystem["/system/config.txt"]) fileSystem["/system/config.txt"] = { type: "file", content: "system_version=2.0\nai_assistant=enabled" };
+if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0 с ИИ-ассистентом!" };
 
 let currentPath = "/";
 function saveFileSystem() { localStorage.setItem('kpk_files', JSON.stringify(fileSystem)); }
@@ -542,15 +678,13 @@ function editorLoad() { let filename = document.getElementById("editorFilename")
 let snakeCanvas, snakeCtx, snakeGameLoop, snakeScore = 0, snakeGameActive = false;
 let snakeArr = [{x:10, y:10}], snakeDir = {x:1, y:0}, snakeFood = {x:15, y:10};
 function startSnakeGame() {
-    let snakeCanvasElem = document.getElementById("snakeCanvas");
-    let tetrisCanvasElem = document.getElementById("tetrisCanvas");
-    snakeCanvasElem.style.display = "block";
-    tetrisCanvasElem.style.display = "none";
+    document.getElementById("snakeCanvas").style.display = "block";
+    document.getElementById("tetrisCanvas").style.display = "none";
     if(snakeGameLoop) clearInterval(snakeGameLoop);
     snakeArr = [{x:10, y:10}]; snakeDir = {x:1, y:0}; snakeScore = 0;
     snakeGameActive = true;
     snakeFood = {x: Math.floor(Math.random()*19), y: Math.floor(Math.random()*19)};
-    snakeCanvas = snakeCanvasElem; snakeCtx = snakeCanvas.getContext("2d");
+    snakeCanvas = document.getElementById("snakeCanvas"); snakeCtx = snakeCanvas.getContext("2d");
     snakeGameLoop = setInterval(updateSnake, 150);
     drawSnake();
 }
@@ -573,13 +707,11 @@ let tetrisCanvas, tetrisCtx, tetrisLoop, tetrisScore = 0, tetrisBoard = Array(20
 let tetrisPieces = [[[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]]];
 let tetrisCurrentPiece, tetrisCurrentX, tetrisCurrentY;
 function startTetrisGame() {
-    let snakeCanvasElem = document.getElementById("snakeCanvas");
-    let tetrisCanvasElem = document.getElementById("tetrisCanvas");
-    tetrisCanvasElem.style.display = "block";
-    snakeCanvasElem.style.display = "none";
+    document.getElementById("tetrisCanvas").style.display = "block";
+    document.getElementById("snakeCanvas").style.display = "none";
     tetrisScore = 0;
     tetrisBoard = Array(20).fill().map(() => Array(10).fill(0));
-    tetrisCanvas = tetrisCanvasElem; tetrisCtx = tetrisCanvas.getContext("2d");
+    tetrisCanvas = document.getElementById("tetrisCanvas"); tetrisCtx = tetrisCanvas.getContext("2d");
     if(tetrisLoop) clearInterval(tetrisLoop);
     spawnTetrisPiece();
     tetrisLoop = setInterval(updateTetris, 500);
@@ -630,7 +762,7 @@ function browserGo() {
     let url = document.getElementById("browserUrl").value.trim().toLowerCase();
     let content = document.getElementById("browserContent");
     if(url === "" || url === "kpk://home") content.innerHTML = `<div style="padding:20px; text-align:center;">🌐 KPK BROWSER<br>📌 kpk://news | kpk://ipgen | kpk://scan</div>`;
-    else if(url === "kpk://news") content.innerHTML = `<div>🔥 НОВОСТИ: KPK V2.0 обновлена!</div>`;
+    else if(url === "kpk://news") content.innerHTML = `<div>🔥 НОВОСТИ: KPK V2.0 с ИИ-ассистентом!</div>`;
     else if(url === "kpk://ipgen") { let ips=[]; for(let i=0;i<20;i++) ips.push(`${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); content.innerHTML = `<div>🔍 IP:<br>${ips.join('<br>')}<button onclick="browserGoTo('kpk://ipgen')">🔄</button></div>`; }
     else if(url === "kpk://scan") content.innerHTML = `<div>🔎 ПОРТЫ: 22🔓 80🔓 443🔓 8080🔓</div>`;
     else content.innerHTML = `<div>❌ Страница не найдена</div>`;
@@ -639,10 +771,32 @@ function browserGoTo(url) { document.getElementById("browserUrl").value = url; b
 
 // ========== ТЕРМИНАЛ ==========
 let cmdHistory = [], historyIndex = -1;
+
 function runCmd() {
     let input = document.getElementById("cmd");
     let raw = input.value.trim();
     if(raw === "") return;
+    
+    if(raw.toLowerCase().startsWith("ask ")) {
+        let question = raw.substring(4);
+        let messagesDiv = document.getElementById("aiMessages");
+        if(messagesDiv) {
+            messagesDiv.innerHTML += `<div class="ai-message user"><strong>👤 ВЫ:</strong> ${escapeHtml(question)}</div>`;
+            messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> <span class="ai-typing">Думаю...</span></div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            setTimeout(() => {
+                let lastMsg = messagesDiv.querySelectorAll(".ai-message.bot:last-child");
+                if(lastMsg.length) lastMsg[lastMsg.length-1].remove();
+                let answer = getAIAnswer(question);
+                messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> ${answer}</div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                openApp('ai');
+            }, 500);
+        }
+        input.value = "";
+        return;
+    }
+    
     cmdHistory.push(raw); historyIndex = cmdHistory.length;
     let cmd = raw.toLowerCase();
     let term = document.getElementById("terminal");
@@ -650,11 +804,9 @@ function runCmd() {
     term.innerHTML += `<div class="terminal-line">[${time}] ➜ ${escapeHtml(raw)}</div>`;
     let output = "";
     
-    // ХАК-КОМАНДЫ
     if(cmd.startsWith("ddos ")) {
         let target = cmd.substring(5);
-        let packets = Math.floor(Math.random() * 50000 + 10000);
-        output = `💣 DDOS АТАКА НА ${target}\n[+] Пакетов: ${packets}\n⚠️ [ДЕМО РЕЖИМ]`;
+        output = `💣 DDOS АТАКА НА ${target}\n[+] Пакетов: ${Math.floor(Math.random()*50000+10000)}\n⚠️ [ДЕМО РЕЖИМ]`;
     }
     else if(cmd === "exploit") {
         output = `🔨 ПОИСК ЭКСПЛОЙТОВ\n[+] CVE-2024-1234: Уязвимость в SSH\n${Math.random() > 0.5 ? '[!] Эксплойт доступен' : '[!] Патч выпущен'}`;
@@ -662,13 +814,12 @@ function runCmd() {
     else if(cmd.startsWith("traceroute ")) {
         let target = cmd.substring(11);
         let hops = [];
-        for(let i = 1; i <= 8; i++) hops.push(`${i}   ${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}   ${Math.floor(Math.random()*100+5)}ms`);
+        for(let i=1;i<=8;i++) hops.push(`${i}   ${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}   ${Math.floor(Math.random()*100+5)}ms`);
         output = `📍 TRACEROUTE до ${target}\n${hops.join('\n')}`;
     }
     else if(cmd.startsWith("whois ")) {
         let target = cmd.substring(6);
-        let countries = ["RU", "US", "DE", "CN", "GB", "AZ"];
-        output = `📋 WHOIS ${target}\nСтрана: ${countries[Math.floor(Math.random()*countries.length)]}\nПровайдер: KPK Networks`;
+        output = `📋 WHOIS ${target}\nСтрана: ${["RU","US","DE","CN","GB","AZ"][Math.floor(Math.random()*6)]}\nПровайдер: KPK Networks`;
     }
     else if(cmd === "hacktools") {
         output = `🛠️ HACK TOOLS\n• Nmap - сканер портов\n• Hydra - брутфорс\n• Metasploit - эксплойты`;
@@ -679,6 +830,7 @@ function runCmd() {
     else if(cmd === "help") {
         output = `КОМАНДЫ KPK V2.0
 ━━━━━━━━━━━━━━━━━━━━━━━
+🤖 AI: ask вопрос
 🔥 ХАК: ddos, exploit, traceroute, whois, hacktools, hack
 📁 ФАЙЛЫ: files, ls, cd, mkdir, pwd
 🎮 ИГРЫ: snake, tetris
@@ -686,7 +838,7 @@ function runCmd() {
 🌐 СЕТЬ: iplist, scanip, ports, net on/off, ping
 💻 ДРУГИЕ: paint, player, alarm, browser, editor, notes, clear, reboot, history`;
     }
-    else if(cmd === "system") { output = `🖥️ KPK V2.0\n🔋 Батарея: ${Math.floor(batteryLevel)}%\n🌐 Сеть: ${net?"ВКЛ":"ВЫКЛ"}`; }
+    else if(cmd === "system") { output = `🖥️ KPK V2.0 | AI ASSISTANT\n🔋 Батарея: ${Math.floor(batteryLevel)}%\n🌐 Сеть: ${net?"ВКЛ":"ВЫКЛ"}\n🤖 ИИ-помощник: Активен`; }
     else if(cmd === "battery") { output = `🔋 Заряд: ${Math.floor(batteryLevel)}%`; }
     else if(cmd === "clear") { term.innerHTML = ""; input.value = ""; return; }
     else if(cmd === "reboot") { output = "Перезагрузка..."; setTimeout(() => reboot(), 1000); }
@@ -699,7 +851,7 @@ function runCmd() {
     else if(cmd === "snake") { openApp('games'); setTimeout(() => startSnakeGame(), 100); output = "🐍 Змейка запущена!"; }
     else if(cmd === "tetris") { openApp('games'); setTimeout(() => startTetrisGame(), 100); output = "🧩 Тетрис запущен!"; }
     else if(cmd === "genpass") { let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*", pass=""; for(let i=0;i<12;i++) pass+=chars[Math.floor(Math.random()*chars.length)]; output = `🔐 Пароль: ${pass}`; }
-    else if(cmd === "weather") { let temp = Math.floor(Math.random()*30 - 10); output = `🌤️ Погода: ${temp}°C, ветер ${Math.floor(Math.random()*15)} м/с`; }
+    else if(cmd === "weather") { let temp = Math.floor(Math.random()*30-10); output = `🌤️ Погода: ${temp}°C, ветер ${Math.floor(Math.random()*15)} м/с`; }
     else if(cmd === "myip") { output = `🌐 Ваш IP: ${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`; }
     else if(cmd === "iplist") { let ips=[]; for(let i=0;i<30;i++) ips.push(`${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); output = `🌍 IP:\n${ips.join('\n')}`; }
     else if(cmd === "scanip") { output = `🔍 Сканирование: порты 22,80,443 открыты`; }
@@ -716,13 +868,13 @@ function runCmd() {
     }
     else if(cmd.startsWith("mkdir ")) { let name = cmd.substring(6); if(name) { createFolder(name); refreshFileList(); output = `📁 Папка "${name}" создана`; } else output = "❌ Укажите имя"; }
     else if(cmd === "pwd") { output = `📂 ${currentPath}`; }
-    else { output = `❌ Неизвестно: ${raw}\nВведите 'help'`; }
+    else { output = `❌ Неизвестно: ${raw}\nВведите 'help' или 'ask вопрос' для ИИ`; }
     
     if(output) term.innerHTML += `<div class="terminal-line">${output.replace(/\n/g, '<br>')}</div>`;
     term.scrollTop = term.scrollHeight;
     input.value = "";
 }
-function escapeHtml(str) { return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
+
 document.getElementById("cmd")?.addEventListener("keypress", (e) => { if(e.key === "Enter") runCmd(); });
 document.getElementById("cmd")?.addEventListener("keydown", (e) => {
     if(e.key === "ArrowUp") { if(historyIndex > 0) { historyIndex--; document.getElementById("cmd").value = cmdHistory[historyIndex]; } }
@@ -731,9 +883,9 @@ document.getElementById("cmd")?.addEventListener("keydown", (e) => {
 
 // ========== ТЕМЫ ==========
 function setTheme(theme) { document.body.className = `theme-${theme}`; localStorage.setItem('kpk_theme', theme); if(tetrisLoop) drawTetris(); }
-function clearStorage() { if(confirm("Очистить все данные?")) { localStorage.clear(); location.reload(); } }
+function clearStorage() { if(confirm("Очистить все данные? Файлы, заметки, плейлисты, будильники будут удалены!")) { localStorage.clear(); location.reload(); } }
 let savedTheme = localStorage.getItem('kpk_theme'); if(savedTheme) setTheme(savedTheme);
-function saveNotes() { localStorage.setItem('kpk_notes', document.getElementById("notesArea").value); alert("💾 Сохранено!"); }
+function saveNotes() { localStorage.setItem('kpk_notes', document.getElementById("notesArea").value); alert("💾 Заметки сохранены!"); }
 function loadNotes() { let saved = localStorage.getItem('kpk_notes'); if(saved) document.getElementById("notesArea").value = saved; }
 
 // ========== ПЕРЕТАСКИВАНИЕ ==========
@@ -806,9 +958,10 @@ window.addEventListener("load", () => {
     loadNotes();
     initPaint();
     let term = document.getElementById("terminal");
-    if(term) term.innerHTML = `<div class="terminal-line">[SYSTEM] KPK V2.0 загружена</div>
+    if(term) term.innerHTML = `<div class="terminal-line">[SYSTEM] KPK V2.0 | AI ASSISTANT загружена</div>
+<div class="terminal-line">[SYSTEM] 🤖 ИИ-помощник готов ответить на вопросы!</div>
 <div class="terminal-line">[SYSTEM] 🔥 ХАК-КОМАНДЫ: ddos, exploit, traceroute, whois</div>
-<div class="terminal-line">[SYSTEM] Введите 'help' для полного списка</div>`;
+<div class="terminal-line">[SYSTEM] Введите 'help' или 'ask вопрос' для ИИ</div>`;
     refreshPlayer();
 });
 document.addEventListener("keydown", (e) => { if(e.key === "F5") { e.preventDefault(); location.reload(); } });
@@ -839,6 +992,8 @@ window.createPlayerFolder = createPlayerFolder;
 window.addAlarm = addAlarm;
 window.removeAlarm = removeAlarm;
 window.stopAlarm = stopAlarm;
+window.askAI = askAI;
+window.runCmd = runCmd;
 </script>
 </body>
 </html>
