@@ -277,11 +277,12 @@
 <div id="ai" class="window"><header>🤖 AI АССИСТЕНТ <div class="window-buttons"><button class="minimize-btn" onclick="minimizeWindow('ai')">_</button><button class="close-btn" onclick="closeApp('ai')">✖</button></div></header>
 <div class="content ai-chat">
     <div class="ai-messages" id="aiMessages">
-        <div class="ai-message bot"><strong>🤖 KPK AI:</strong> Привет! Я твой ИИ-ассистент. Задавай любые вопросы — помогу с командами, подскажу по системе, напишу код, объясню что угодно. Чем могу помочь?</div>
+        <div class="ai-message bot"><strong>🤖 KPK AI:</strong> Привет! Я настоящий ИИ-ассистент на базе OpenRouter. Задавай любые вопросы — я подключён к нейросети и умею поддерживать диалог, писать код и многое другое!</div>
     </div>
     <div class="ai-input-area">
         <input type="text" id="aiInput" placeholder="Спроси меня о чём угодно..." onkeypress="if(event.key==='Enter') askAI()">
         <button onclick="askAI()">📤</button>
+        <button onclick="startVoiceInput()" style="background:#0a2a0a;">🎙️</button>
     </div>
 </div></div>
 
@@ -340,7 +341,127 @@
 <div id="bootScreen"><div id="bootText">⚡ BOOTING</div><div class="boot-container"><div id="bootBar"></div></div><div id="bootPercent">0%</div></div>
 
 <script>
-// ========== БАТАРЕЯ ==========
+// ========== 🔑 ВСТАВЬТЕ ВАШ API-КЛЮЧ НИЖЕ (строка 439) ==========
+// 1. Зарегистрируйтесь на https://openrouter.ai
+// 2. Получите API-ключ в разделе "API Keys"
+// 3. Скопируйте ключ и вставьте его между кавычек вместо "ВАШ_API_КЛЮЧ"
+const OPENROUTER_API_KEY = "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"; // <-- ЗАМЕНИТЕ ЭТУ СТРОКУ!
+// =================================================================
+
+const OPENROUTER_MODEL = "openrouter/free"; // Автоматически выбирает лучшую бесплатную модель
+
+// Голосовое распознавание
+let recognition;
+function startVoiceInput() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("❌ Ваш браузер не поддерживает голосовой ввод. Используйте Chrome, Edge или Safari.");
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'ru-RU';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    
+    recognition.onresult = (event) => {
+        const speechToText = event.results[0][0].transcript;
+        document.getElementById("aiInput").value = speechToText;
+        askAI();
+    };
+    
+    recognition.onerror = (event) => {
+        console.error("Ошибка голосового ввода:", event.error);
+        alert("❌ Не удалось распознать голос. Попробуйте ещё раз.");
+    };
+    
+    recognition.start();
+}
+
+// ========== НАСТОЯЩИЙ ИИ ЧЕРЕЗ OPENROUTER ==========
+async function askAI() {
+    let input = document.getElementById("aiInput");
+    let question = input.value.trim();
+    if (!question) return;
+    
+    let messagesDiv = document.getElementById("aiMessages");
+    
+    // Добавляем вопрос пользователя в чат
+    messagesDiv.innerHTML += `<div class="ai-message user"><strong>👤 ВЫ:</strong> ${escapeHtml(question)}</div>`;
+    input.value = "";
+    
+    // Добавляем индикатор "печатает..."
+    messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> <span class="ai-typing">✍️ Печатает...</span></div>`;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    // Проверяем, вставлен ли API-ключ
+    if (OPENROUTER_API_KEY === "ВАШ_API_КЛЮЧ") {
+        const lastMsg = messagesDiv.querySelectorAll(".ai-message.bot:last-child");
+        if (lastMsg.length) lastMsg[lastMsg.length-1].remove();
+        messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> ⚠️ API-ключ не настроен! Пожалуйста, получите бесплатный ключ на <a href="https://openrouter.ai" target="_blank" style="color:#0f0;">openrouter.ai</a> и вставьте его в код (строка 439).</div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        return;
+    }
+    
+    try {
+        // Отправляем запрос к OpenRouter API
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                "HTTP-Referer": window.location.origin,
+                "X-Title": "KPK V2.0 AI Assistant"
+            },
+            body: JSON.stringify({
+                model: OPENROUTER_MODEL,
+                messages: [
+                    {
+                        role: "system",
+                        content: "Ты — KPK AI, дружелюбный и умный помощник в стиле киберпанк/неон. Ты встроен в систему KPK V2.0. Отвечай кратко (2-4 предложения), понятно и с душой. Если спрашивают о командах — подсказывай (help, ddos, exploit, traceroute, whois, genpass). Можешь использовать эмодзи и неоновую эстетику. Будь полезным и немного таинственным."
+                    },
+                    {
+                        role: "user",
+                        content: question
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 500
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Убираем индикатор "печатает..."
+        const lastMsg = messagesDiv.querySelectorAll(".ai-message.bot:last-child");
+        if (lastMsg.length) lastMsg[lastMsg.length-1].remove();
+        
+        // Получаем ответ AI
+        let answer;
+        if (data.choices && data.choices[0]) {
+            answer = data.choices[0].message.content;
+        } else if (data.error) {
+            console.error("Ошибка API:", data.error);
+            answer = `😵 Ошибка: ${data.error.message || "Неизвестная ошибка"}. Проверьте API-ключ или попробуйте позже.`;
+        } else {
+            answer = "😵 Странный ответ от сервера. Попробуйте ещё раз!";
+        }
+        
+        // Показываем ответ
+        messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> ${escapeHtml(answer)}</div>`;
+        
+    } catch (error) {
+        console.error("Ошибка:", error);
+        const lastMsg = messagesDiv.querySelectorAll(".ai-message.bot:last-child");
+        if (lastMsg.length) lastMsg[lastMsg.length-1].remove();
+        messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> 🔌 Не удалось подключиться к AI-серверу. Проверьте интернет-соединение или попробуйте позже.</div>`;
+    }
+    
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// ========== ОСТАЛЬНЫЕ ФУНКЦИИ (БАТАРЕЯ, ЧАСЫ И Т.Д.) ==========
+function escapeHtml(str) { return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
+
 let batteryLevel = 100, autoDischarge = false, dischargeInterval;
 function updateBattery() {
     let batSpan = document.getElementById("battery");
@@ -362,7 +483,6 @@ function toggleAuto() {
 }
 setInterval(updateBattery, 1000); updateBattery();
 
-// ========== ЧАСЫ ==========
 function updateLock() { let d = new Date(); document.getElementById("lockTime").innerText = d.getHours().toString().padStart(2,'0')+":"+d.getMinutes().toString().padStart(2,'0'); document.getElementById("lockDate").innerText = d.toDateString(); }
 setInterval(updateLock, 1000); updateLock();
 function unlock() { document.getElementById("lockScreen").style.display = "none"; }
@@ -390,86 +510,6 @@ function toggleNet() { net = !net; document.getElementById("wifi").innerText = n
 function simulatePing() { if(net) alert("🏓 Пинг: "+(Math.floor(Math.random()*80+20))+"ms"); else alert("Сеть отключена"); }
 function showMyIP() { document.getElementById("myIpDisplay").innerHTML = "🌐 Ваш IP: " + Math.floor(Math.random()*255)+"."+Math.floor(Math.random()*255)+"."+Math.floor(Math.random()*255)+"."+Math.floor(Math.random()*255); }
 
-// ========== AI АССИСТЕНТ ==========
-function askAI() {
-    let input = document.getElementById("aiInput");
-    let question = input.value.trim();
-    if(!question) return;
-    
-    let messagesDiv = document.getElementById("aiMessages");
-    messagesDiv.innerHTML += `<div class="ai-message user"><strong>👤 ВЫ:</strong> ${escapeHtml(question)}</div>`;
-    input.value = "";
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    
-    messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> <span class="ai-typing">Думаю...</span></div>`;
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    
-    setTimeout(() => {
-        let lastMsg = messagesDiv.querySelectorAll(".ai-message.bot:last-child");
-        if(lastMsg.length) lastMsg[lastMsg.length-1].remove();
-        
-        let answer = getAIAnswer(question);
-        messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> ${answer}</div>`;
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }, 500 + Math.random() * 500);
-}
-
-function getAIAnswer(question) {
-    let q = question.toLowerCase();
-    
-    if(q.match(/привет|здравствуй|hello|hi|ку|салам/i)) {
-        return "Привет! 👋 Я KPK AI — твой виртуальный помощник. Задавай любые вопросы по системе, программированию, или просто поболтаем! Чем могу помочь?";
-    }
-    if(q.match(/команды|помощь|help|что умеешь|функции/i)) {
-        return "📋 <strong>Мои возможности:</strong><br>• Отвечаю на любые вопросы<br>• Помогаю с командами терминала<br>• Пишу код (HTML, CSS, JS)<br>• Объясняю как работают приложения<br>• Подсказываю по Paint, Плееру, Часам<br>• Могу пошутить<br><br>💡 <strong>Команды терминала:</strong> help, system, battery, ddos, exploit, files, paint, player, alarm, snake, tetris, genpass, weather, iplist, scanip и другие!";
-    }
-    if(q.match(/ddos|атака|атаковать/i)) {
-        return "💣 <strong>DDoS атака (демо-режим):</strong><br>В терминале используй команду: <code>ddos 192.168.1.1</code><br>⚠️ Это симуляция, для образовательных целей! Никаких реальных атак не происходит.";
-    }
-    if(q.match(/paint|рисование|рисовать|draw/i)) {
-        return "🎨 <strong>Paint — редактор для рисования:</strong><br>• Выбирай цвета сверху<br>• Рисуй мышкой или пальцем<br>• Кнопка 'Оч' очищает всё<br>• Кнопка 'Сохр' сохраняет рисунок в PNG";
-    }
-    if(q.match(/плеер|player|музыка|песни|mp3/i)) {
-        return "🎵 <strong>Музыкальный плеер:</strong><br>1. Создай папку<br>2. Выбери папку<br>3. Нажми 'Выбрать MP3' и выбери файл<br>4. Введи название и нажми 'Добавить'<br>5. Нажми на трек и ▶ PLAY";
-    }
-    if(q.match(/часы|время|будильник|alarm/i)) {
-        return "⏰ <strong>Часы и будильник:</strong><br>• Показывает твоё локальное время<br>• Мировые часы (Москва, Баку, Нью-Йорк, Лондон, Токио)<br>• Чтобы установить будильник — выбери время и нажми 'Установить'";
-    }
-    if(q.match(/игры|game|snake|змейка|tetris|тетрис/i)) {
-        return "🎮 <strong>Аркады KPK:</strong><br>• 🐍 Змейка — управляй стрелками, ешь красные точки<br>• 🧩 Тетрис — стрелки ←→↓ двигают фигуру, ↑ вращает<br><br>Команды: <code>snake</code> или <code>tetris</code>";
-    }
-    if(q.match(/терминал|команды терминал/i)) {
-        return "💻 <strong>Команды терминала:</strong><br>• <code>help</code> — список всех команд<br>• <code>system</code> — информация о системе<br>• <code>battery</code> — уровень заряда<br>• <code>ddos 1.2.3.4</code> — DDoS атака (демо)<br>• <code>exploit</code> — поиск уязвимостей<br>• <code>traceroute google.com</code> — трассировка<br>• <code>whois 8.8.8.8</code> — инфо об IP<br>• <code>genpass</code> — генератор паролей<br>• <code>weather</code> — погода (демо)<br>• <code>iplist</code> — список IP<br>• <code>files</code>, <code>paint</code>, <code>player</code>, <code>alarm</code> — открыть приложения<br>• <code>clear</code> — очистить экран<br>• <code>reboot</code> — перезагрузка";
-    }
-    if(q.match(/код|программирование|html|css|javascript|js|напиши код/i)) {
-        if(q.match(/html/i)) return "📄 <strong>HTML код:</strong><br><code>&lt;!DOCTYPE html&gt;<br>&lt;html&gt;<br>&lt;head&gt;&lt;title&gt;Моя страница&lt;/title&gt;&lt;/head&gt;<br>&lt;body&gt;<br>  &lt;h1&gt;Привет, KPK!&lt;/h1&gt;<br>&lt;/body&gt;<br>&lt;/html&gt;</code>";
-        if(q.match(/css/i)) return "🎨 <strong>CSS стили:</strong><br><code>body { background: #000; color: #0f0; font-family: monospace; }<br>.glow { text-shadow: 0 0 10px lime; }</code>";
-        if(q.match(/javascript|js/i)) return "⚡ <strong>JavaScript код:</strong><br><code>console.log('Hello KPK!');<br>function greet(name) { return `Привет, ${name}!`; }</code>";
-        return "💻 Напиши конкретнее: HTML, CSS, JavaScript — что нужно?";
-    }
-    if(q.match(/kpk|система|версия/i)) {
-        return "🖥️ <strong>KPK V2.0 — информация:</strong><br>• Версия: 2.0 (AI Assistant Edition)<br>• Приложений: 13<br>• Хак-команд: 8<br>• Игр: 2 (Змейка, Тетрис)<br>• Особенности: Неоновое свечение, Drag&Drop окон, автосохранение, ИИ-помощник";
-    }
-    if(q.match(/шутка|смешное|пошути|joke/i)) {
-        let jokes = ["Почему программисты не любят природу? Слишком много багов! 🐜","Сколько программистов нужно, чтобы заменить лампочку? Ни одного — это аппаратная проблема! 💡","Чем отличается хакер от обычного пользователя? Хакер знает, что Ctrl+C и Ctrl+V спасают жизнь! ⌨️","KPK — это Как Программировать Круто! 😎"];
-        return jokes[Math.floor(Math.random() * jokes.length)];
-    }
-    if(q.match(/как дела|как жизнь|how are you/i)) {
-        return "У меня всё отлично! 🔋 Батарея на 100%, неоновый свет горит, ИИ работает. А у тебя?";
-    }
-    if(q.match(/спасибо|thanks/i)) {
-        return "Пожалуйста! Всегда рад помочь 🤝 Обращайся, если что-то нужно!";
-    }
-    if(q.match(/кто ты|ты кто/i)) {
-        return "🤖 Я — KPK AI, твой виртуальный ассистент! Встроен прямо в систему KPK V2.0. Умею отвечать на вопросы, помогать с командами, писать код и даже шутить.";
-    }
-    
-    return "📡 Интересный вопрос! 🤔\n\n✨ Я ещё не знаю точного ответа на это. Но могу помочь с командами KPK, подсказать про Paint, Плеер, Часы, Терминал или написать код. Уточни вопрос?\n\n💡 Либо спроси про команды (help), либо задай другой вопрос!";
-}
-
-function escapeHtml(str) { return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
-
-// ========== PAINT ==========
 let paintCanvas, paintCtx, paintColor = "#0f0";
 function initPaint() {
     paintCanvas = document.getElementById("paintCanvas");
@@ -504,7 +544,6 @@ function setPaintColor(color) { paintColor = color; }
 function clearPaint() { paintCtx.fillStyle = "#fff"; paintCtx.fillRect(0, 0, paintCanvas.width, paintCanvas.height); }
 function savePaint() { let link = document.createElement("a"); link.download = "drawing.png"; link.href = paintCanvas.toDataURL(); link.click(); }
 
-// ========== ПЛЕЕР ==========
 let playerFolders = JSON.parse(localStorage.getItem('playerFolders')) || { "Моя музыка": [] };
 let currentFolder = null, currentTrackObj = null, currentAudio = null, selectedMP3File = null;
 function selectMP3File() { document.getElementById("mp3FileInput").click(); }
@@ -579,7 +618,6 @@ function createPlayerFolder() {
 }
 refreshPlayer();
 
-// ========== ЧАСЫ С БУДИЛЬНИКОМ ==========
 let alarms = JSON.parse(localStorage.getItem('alarms')) || [];
 function updateTime() {
     let now = new Date();
@@ -635,12 +673,11 @@ setInterval(updateTime, 1000);
 updateTime();
 refreshAlarmList();
 
-// ========== ФАЙЛОВАЯ СИСТЕМА ==========
 let fileSystem = JSON.parse(localStorage.getItem('kpk_files')) || { "/": { type: "folder", children: ["system", "documents"], content: {} } };
 if(!fileSystem["/system"]) fileSystem["/system"] = { type: "folder", children: ["config.txt"], content: {} };
 if(!fileSystem["/documents"]) fileSystem["/documents"] = { type: "folder", children: ["readme.txt"], content: {} };
 if(!fileSystem["/system/config.txt"]) fileSystem["/system/config.txt"] = { type: "file", content: "system_version=2.0\nai_assistant=enabled" };
-if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0 с ИИ-ассистентом!" };
+if(!fileSystem["/documents/readme.txt"]) fileSystem["/documents/readme.txt"] = { type: "file", content: "Добро пожаловать в KPK V2.0 с настоящим ИИ-ассистентом!" };
 
 let currentPath = "/";
 function saveFileSystem() { localStorage.setItem('kpk_files', JSON.stringify(fileSystem)); }
@@ -674,7 +711,6 @@ function createFile() { let name = prompt("📄 Имя файла:"); if(!name |
 function editorSave() { let filename = document.getElementById("editorFilename").value.trim(); let content = document.getElementById("editorArea").value; if(!filename) { alert("Введите имя файла"); return; } let path = currentPath === "/" ? "/" + filename : currentPath + "/" + filename; fileSystem[path] = { type: "file", content: content }; if(!fileSystem[currentPath].children.includes(filename)) fileSystem[currentPath].children.push(filename); saveFileSystem(); refreshFileList(); alert("✅ Сохранено!"); }
 function editorLoad() { let filename = document.getElementById("editorFilename").value.trim(); if(!filename) { alert("Введите имя файла"); return; } let path = currentPath === "/" ? "/" + filename : currentPath + "/" + filename; let file = fileSystem[path]; if(file && file.type === "file") document.getElementById("editorArea").value = file.content; else alert("❌ Файл не найден"); }
 
-// ========== ИГРЫ ==========
 let snakeCanvas, snakeCtx, snakeGameLoop, snakeScore = 0, snakeGameActive = false;
 let snakeArr = [{x:10, y:10}], snakeDir = {x:1, y:0}, snakeFood = {x:15, y:10};
 function startSnakeGame() {
@@ -757,19 +793,17 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-// ========== БРАУЗЕР ==========
 function browserGo() {
     let url = document.getElementById("browserUrl").value.trim().toLowerCase();
     let content = document.getElementById("browserContent");
     if(url === "" || url === "kpk://home") content.innerHTML = `<div style="padding:20px; text-align:center;">🌐 KPK BROWSER<br>📌 kpk://news | kpk://ipgen | kpk://scan</div>`;
-    else if(url === "kpk://news") content.innerHTML = `<div>🔥 НОВОСТИ: KPK V2.0 с ИИ-ассистентом!</div>`;
+    else if(url === "kpk://news") content.innerHTML = `<div>🔥 НОВОСТИ: KPK V2.0 с настоящим ИИ-ассистентом!</div>`;
     else if(url === "kpk://ipgen") { let ips=[]; for(let i=0;i<20;i++) ips.push(`${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); content.innerHTML = `<div>🔍 IP:<br>${ips.join('<br>')}<button onclick="browserGoTo('kpk://ipgen')">🔄</button></div>`; }
     else if(url === "kpk://scan") content.innerHTML = `<div>🔎 ПОРТЫ: 22🔓 80🔓 443🔓 8080🔓</div>`;
     else content.innerHTML = `<div>❌ Страница не найдена</div>`;
 }
 function browserGoTo(url) { document.getElementById("browserUrl").value = url; browserGo(); }
 
-// ========== ТЕРМИНАЛ ==========
 let cmdHistory = [], historyIndex = -1;
 
 function runCmd() {
@@ -779,20 +813,8 @@ function runCmd() {
     
     if(raw.toLowerCase().startsWith("ask ")) {
         let question = raw.substring(4);
-        let messagesDiv = document.getElementById("aiMessages");
-        if(messagesDiv) {
-            messagesDiv.innerHTML += `<div class="ai-message user"><strong>👤 ВЫ:</strong> ${escapeHtml(question)}</div>`;
-            messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> <span class="ai-typing">Думаю...</span></div>`;
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            setTimeout(() => {
-                let lastMsg = messagesDiv.querySelectorAll(".ai-message.bot:last-child");
-                if(lastMsg.length) lastMsg[lastMsg.length-1].remove();
-                let answer = getAIAnswer(question);
-                messagesDiv.innerHTML += `<div class="ai-message bot"><strong>🤖 KPK AI:</strong> ${answer}</div>`;
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                openApp('ai');
-            }, 500);
-        }
+        document.getElementById("aiInput").value = question;
+        askAI();
         input.value = "";
         return;
     }
@@ -838,7 +860,7 @@ function runCmd() {
 🌐 СЕТЬ: iplist, scanip, ports, net on/off, ping
 💻 ДРУГИЕ: paint, player, alarm, browser, editor, notes, clear, reboot, history`;
     }
-    else if(cmd === "system") { output = `🖥️ KPK V2.0 | AI ASSISTANT\n🔋 Батарея: ${Math.floor(batteryLevel)}%\n🌐 Сеть: ${net?"ВКЛ":"ВЫКЛ"}\n🤖 ИИ-помощник: Активен`; }
+    else if(cmd === "system") { output = `🖥️ KPK V2.0 | AI ASSISTANT\n🔋 Батарея: ${Math.floor(batteryLevel)}%\n🌐 Сеть: ${net?"ВКЛ":"ВЫКЛ"}\n🤖 ИИ-помощник: Реальный AI через OpenRouter`; }
     else if(cmd === "battery") { output = `🔋 Заряд: ${Math.floor(batteryLevel)}%`; }
     else if(cmd === "clear") { term.innerHTML = ""; input.value = ""; return; }
     else if(cmd === "reboot") { output = "Перезагрузка..."; setTimeout(() => reboot(), 1000); }
@@ -881,14 +903,12 @@ document.getElementById("cmd")?.addEventListener("keydown", (e) => {
     else if(e.key === "ArrowDown") { if(historyIndex < cmdHistory.length-1) { historyIndex++; document.getElementById("cmd").value = cmdHistory[historyIndex]; } else { historyIndex = cmdHistory.length; document.getElementById("cmd").value = ""; } }
 });
 
-// ========== ТЕМЫ ==========
 function setTheme(theme) { document.body.className = `theme-${theme}`; localStorage.setItem('kpk_theme', theme); if(tetrisLoop) drawTetris(); }
 function clearStorage() { if(confirm("Очистить все данные? Файлы, заметки, плейлисты, будильники будут удалены!")) { localStorage.clear(); location.reload(); } }
 let savedTheme = localStorage.getItem('kpk_theme'); if(savedTheme) setTheme(savedTheme);
 function saveNotes() { localStorage.setItem('kpk_notes', document.getElementById("notesArea").value); alert("💾 Заметки сохранены!"); }
 function loadNotes() { let saved = localStorage.getItem('kpk_notes'); if(saved) document.getElementById("notesArea").value = saved; }
 
-// ========== ПЕРЕТАСКИВАНИЕ ==========
 function makeDraggable(win) {
     let header = win.querySelector("header");
     if(!header) return;
@@ -938,7 +958,6 @@ function makeDraggable(win) {
 }
 document.querySelectorAll(".window").forEach(makeDraggable);
 
-// ========== ПЕРЕЗАГРУЗКА ==========
 function reboot() {
     let boot = document.getElementById("bootScreen"), percent = 0;
     boot.style.display = "flex";
@@ -952,14 +971,13 @@ function reboot() {
 }
 window.reboot = reboot;
 
-// ========== ЗАПУСК ==========
 window.addEventListener("load", () => {
     refreshFileList();
     loadNotes();
     initPaint();
     let term = document.getElementById("terminal");
     if(term) term.innerHTML = `<div class="terminal-line">[SYSTEM] KPK V2.0 | AI ASSISTANT загружена</div>
-<div class="terminal-line">[SYSTEM] 🤖 ИИ-помощник готов ответить на вопросы!</div>
+<div class="terminal-line">[SYSTEM] 🤖 ИИ-помощник подключён к OpenRouter (настоящий AI!)</div>
 <div class="terminal-line">[SYSTEM] 🔥 ХАК-КОМАНДЫ: ddos, exploit, traceroute, whois</div>
 <div class="terminal-line">[SYSTEM] Введите 'help' или 'ask вопрос' для ИИ</div>`;
     refreshPlayer();
@@ -993,6 +1011,7 @@ window.addAlarm = addAlarm;
 window.removeAlarm = removeAlarm;
 window.stopAlarm = stopAlarm;
 window.askAI = askAI;
+window.startVoiceInput = startVoiceInput;
 window.runCmd = runCmd;
 </script>
 </body>
